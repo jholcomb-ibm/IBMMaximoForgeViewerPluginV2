@@ -24,3 +24,6 @@ o cd <maximo root>\tools\maximo\internal
 o runscriptfile -cbimlmv -fresizefixUpdates 
 
 o runscriptfile -cbimlmv -fV7612_01 
+
+For a more comprehensive list of enhancements and fixes, please visit:
+https://github.com/jholcomb-ibm/IBMMaximoForgeViewerPluginV2/blob/master/Doc/7612%20Maximo%20Autodesk%20Forge%20Viewer%20-%20README.pdf
