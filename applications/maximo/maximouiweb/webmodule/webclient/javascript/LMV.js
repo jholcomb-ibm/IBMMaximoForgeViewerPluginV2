@@ -141,7 +141,8 @@ IBM.LMV.toolBarExtension = function(
 		// Add Fit-To-View to existing menu
 		var buttonFitModel = new Autodesk.Viewing.UI.Button("Maximo_toolabr_button_fit_model");
 		buttonFitModel.icon.style.backgroundImage = "url(" + IBM.LMV.PATH_IMAGES + "tb_expandToFit.png" + ")";
-		buttonFitModel.setToolTip( IBM.LMV.Strings[ IBM.LMV.Strings.TOOLBAR_ZOOM_MODEL ] );
+		//buttonFitModel.setToolTip( IBM.LMV.Strings[ IBM.LMV.Strings.TOOLBAR_ZOOM_MODEL ] );
+		buttonFitModel.setToolTip( IBM.LMV.Strings.TOOLBAR_ZOOM_MODEL  );
 		buttonFitModel.onClick = function() { _forgeViewer.viewer.navigation.fitBounds(true, _forgeViewer.viewer.model.getBoundingBox());};
 		var options = new Object();
 		options.index = 4;
@@ -156,24 +157,28 @@ IBM.LMV.toolBarExtension = function(
 		// Add a sub-menu to the Maximo toolbar to manage selection related options
 		var submenuMaximoSelect = new Autodesk.Viewing.UI.ComboButton( IBM.LMV.ToolBar.ID_TOOLBAR_SELECT );
 		submenuMaximoSelect.icon.style.backgroundImage = "url(" + IBM.LMV.PATH_IMAGES + "360_select.png" + ")";
-		submenuMaximoSelect.setToolTip( IBM.LMV.Strings[ "Maximo" ] );
+		//submenuMaximoSelect.setToolTip( IBM.LMV.Strings[ "Maximo" ] );
+		submenuMaximoSelect.setToolTip(  "Selection Tools"  );
 		maximoSubToolbar.addControl( submenuMaximoSelect );
 		
 		// Button to toggle between single and multi-select modes
 		this.buttonSelect = new Autodesk.Viewing.UI.Button("Maximo_toolabr_button_single_selection");
 		this.buttonSelect.icon.style.backgroundImage = "url(" + IBM.LMV.PATH_IMAGES + "tb_selectSingle.png" + ")";
-		this.buttonSelect.setToolTip( IBM.LMV.Strings[ IBM.LMV.Strings.TOOLBAR_SELECTION_MODE ] );
+		//this.buttonSelect.setToolTip( IBM.LMV.Strings[ IBM.LMV.Strings.TOOLBAR_SELECTION_MODE ] );
+		this.buttonSelect.setToolTip(  IBM.LMV.Strings.TOOLBAR_SELECTION_MODE  );
 		this.buttonSelect.onClick = function( evt ) { _self.setSelectMode( evt );};
 		
 		// Add Hidel Selection button
 		var buttonHideSelection = new Autodesk.Viewing.UI.Button("Maximo_toolabr_button_hide_selection");
 		buttonHideSelection.icon.style.backgroundImage = "url(" + IBM.LMV.PATH_IMAGES + "hide_selection.png" + ")";
-		buttonHideSelection.setToolTip( IBM.LMV.Strings[ IBM.LMV.Strings.TOOLBAR_HIDE_SELECTION ] );
+		//buttonHideSelection.setToolTip( IBM.LMV.Strings[ IBM.LMV.Strings.TOOLBAR_HIDE_SELECTION ] );
+		buttonHideSelection.setToolTip(  IBM.LMV.Strings.TOOLBAR_HIDE_SELECTION  );
 		buttonHideSelection.onClick = function() { _self.doHideSelection();};
 		
 		var buttonIsolateSelection = new Autodesk.Viewing.UI.Button("Maximo_toolabr_button_isolate_selection");
 		buttonIsolateSelection.icon.style.backgroundImage = "url(" + IBM.LMV.PATH_IMAGES + "tb_isolateSelected.png" + ")";
-		buttonIsolateSelection.setToolTip( IBM.LMV.Strings[ IBM.LMV.Strings.TOOLBAR_ISOLATE_SELECTION ] );
+		//buttonIsolateSelection.setToolTip( IBM.LMV.Strings[ IBM.LMV.Strings.TOOLBAR_ISOLATE_SELECTION ] );
+		buttonIsolateSelection.setToolTip( IBM.LMV.Strings.TOOLBAR_ISOLATE_SELECTION  );
 		buttonIsolateSelection.onClick = function() { _self.doIsolateSelection();};
 	
 		this.buttonAutoZoom = new Autodesk.Viewing.UI.Button("Maximo_toolabr_button_autozoomn");;
@@ -189,7 +194,8 @@ IBM.LMV.toolBarExtension = function(
 		// Sub-menu for launcing Maximo functions
 		var maximoSubMenu = new Autodesk.Viewing.UI.ComboButton( IBM.LMV.ToolBar.ID_TOOLBAR_MAXIMO );
 		maximoSubMenu.icon.style.backgroundImage = "url(" + IBM.LMV.PATH_IMAGES + "mx_icon.png" + ")";
-		maximoSubMenu.setToolTip( IBM.LMV.Strings[ "Maximo" ] );
+		//maximoSubMenu.setToolTip( IBM.LMV.Strings[ "Maximo" ] );
+		maximoSubMenu.setToolTip(  "View Tools"  );
 		
 		var buttonMaximoOpt = new Autodesk.Viewing.UI.Button("Maximo_toolabr_submenu.restoreState");
 		buttonMaximoOpt.icon.style.backgroundImage = "url(" + IBM.LMV.PATH_IMAGES + "360_restore_view.png )";
@@ -225,7 +231,8 @@ IBM.LMV.toolBarExtension = function(
 		var _self = this;
 		var buttonSearch = new Autodesk.Viewing.UI.Button("Maximo_toolabr_button_search");
 		buttonSearch.icon.style.backgroundImage = "url(" + IBM.LMV.PATH_IMAGES + "tb_find.png" + ")";
-		buttonSearch.setToolTip( IBM.LMV.Strings[ IBM.LMV.Strings.TOOLBAR_SEARCH ] );
+		//buttonSearch.setToolTip( IBM.LMV.Strings[ IBM.LMV.Strings.TOOLBAR_SEARCH ] );
+		buttonSearch.setToolTip(  IBM.LMV.Strings.TOOLBAR_SEARCH  );
 		buttonSearch.onClick = function( e ) { _self.doSearch( e );};
 		var ctrl = buttonSearch.container;
 		ctrl.style.width = "168px";
@@ -704,8 +711,6 @@ IBM.LMV.SaveViewDlg = function (
 		cell.className = "maxlmv_DlgBoxButton";
 		cell.innerHTML = IBM.LMV.Strings.DLG_BTN_CLOSE;
 		this.initializeCloseHandler( cell );
-
-		this.container.appendChild( btnBar );
 		
 		this.addEventListener( cell, 'click', function (e) {
 			that.uninitialize();
@@ -788,6 +793,7 @@ IBM.LMV.SaveViewDlg = function (
 
 
 		this.scrollContainer.appendChild( dlgTable );
+		this.scrollContainer.appendChild(btnBar);
 	}
 	
 	this.onLabelLookup = function(
@@ -1201,8 +1207,6 @@ IBM.LMV.LoadViewDlg.prototype.setVisible = function(
 		cell.className = "maxlmv_DlgBoxButton";
 		cell.innerHTML = IBM.LMV.Strings.DLG_BTN_CLOSE;
 		this.initializeCloseHandler( cell );
-
-		this.container.appendChild( btnBar );
 		
 		this.addEventListener( cell, 'click', function (e) {
 			_self.uninitialize();
@@ -1220,7 +1224,8 @@ IBM.LMV.LoadViewDlg.prototype.setVisible = function(
 		cell                     = this.header.insertCell( 3 );
 
 		this.scrollContainer.appendChild( this.viewTable );
-
+		this.scrollContainer.appendChild(btnBar);
+		
 		var that = this;
 		IBM.LMV.dataDictionary.getLabels( "BIMLMVSAVEDVIEW", function( mbo, labels ) { that.onHeadings(  mbo, labels  ); } );
 		

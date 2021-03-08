@@ -22,6 +22,7 @@ IBM.createNS( "IBM.LMV.Markup" );
 IBM.LMV.Markup.EVENT_SHOW = "EVENT_SHOW";
 IBM.LMV.Markup.EVENT_HIDE = "EVENT_HIDE";
 IBM.LMV.Markup.data       = null;
+IBM.LMV.Markup.LeaveViewModeButton = null;
 
 IBM.LMV.Markup.MarkupMgr = function(
 	forgeViewer
@@ -39,6 +40,8 @@ IBM.LMV.Markup.MarkupMgr = function(
 	this.currentStyle        = null;
 	this.defaultStyle        = null;
 	this.isText              = false;
+    this.renderId            = null;
+    
 	
 	this.init = function(
 		viewer
@@ -46,7 +49,7 @@ IBM.LMV.Markup.MarkupMgr = function(
 		var _self = this;
 		
 		this.viewer = viewer;
-		var markup = IBM.LMV.viewer.getExtension("Autodesk.Viewing.MarkupsCore");
+        var markup = IBM.LMV.viewer.getExtension("Autodesk.Viewing.MarkupsCore");
 		if( markup == null )
 		{
 			try
@@ -65,6 +68,10 @@ IBM.LMV.Markup.MarkupMgr = function(
 				IBM.LMV.markup = markup;
 			}
 		}
+		else if(markup != null && IBM.LMV.markup == null)
+		{
+			IBM.LMV.markup = markup;
+		}
 		if( this.markup == null || this.markup != markup )
 		{
 			if( markup != null )
@@ -78,6 +85,7 @@ IBM.LMV.Markup.MarkupMgr = function(
 											  function( evt ) {_self.onMarkupSelect( evt ) } );
 			}
 		}
+        
 	}
 	
 	this.addModeChangeListerner = function(
@@ -85,24 +93,28 @@ IBM.LMV.Markup.MarkupMgr = function(
 	) {
 		this.modeChangeListeners.push( listener );
 	}
-	
+    
 	this.createMarkup = function(
-		viewer, wonum
+		viewer, identifier, appType, renderId
 	) {
-		this.wonum  = wonum;
+		this.wonum  = identifier;
+        
+        this.appType = appType;
+        
+        this.renderId = renderId;
 		
 		this.init( viewer );
 		
 		// Persumable the viewer is not fully initialized.
-		if( this.markup == null ) return;
-		
-		if( this.toolbar == null )
-		{
-			this.toolbar = new IBM.LMV.Markup.Toolbar( this );
-		}
+		if( this.markup == null ) {
+            return;
+        }
+
+        this.toolbar = new IBM.LMV.Markup.Toolbar( this );
+
 		try
-		{
-			this.markup.enterEditMode();
+		{   
+            this.enterMarkupEditMode(identifier);
 		}
 		catch( e )
 		{
@@ -118,6 +130,77 @@ IBM.LMV.Markup.MarkupMgr = function(
 			IBM.LMV.displayError( e );
 		}
 	}
+    
+    this.enterMarkupEditMode = function(identifier) {
+        var appId = window.parent.APPID;
+        if(appId === "asset") {
+            this.enterDefectMarkupEditMode(identifier);
+        }
+        else {
+            this.markup.enterEditMode(); 
+        }
+    }
+    
+    this.getDefectsUrl = function(identifier) {
+        
+        var url = IBM.LMV.Auth.getRestURL();
+        
+        url = url + "/mbo/bimlmvdefectview" ;
+        url = url +  "?BUILDINGMODELID=~eq~" + IBM.LMV.modelId;
+        url = url +  "&assetnum=~eq~"           + identifier;
+        url = url +  "&siteId=~eq~"          + IBM.LMV.siteId;
+        
+        return url;
+    }
+    
+    this.enterDefectMarkupEditMode = function(identifier) {
+                
+        var _self = this;
+
+        var url = this.getDefectsUrl(identifier);
+                
+        var xmlReq = new XMLHttpRequest();
+        var _self = this;        
+        xmlReq.onreadystatechange = function() { 
+           if( this.readyState != 4 )  
+           { 
+                return; 
+           }
+
+           if( this.status != 200 )
+           {
+                IBM.LMV.RESTError( this.status, IBM.LMV.Strings.ERR_REST, this.responseText );
+                this.uninitialize();
+                return;
+           }
+            
+           _self.processDefectsEditMode(this, _self);
+                
+        };
+        xmlReq.open( "GET", url, true );
+        IBM.LMV.Auth.setRequestHeaders( xmlReq );
+        IBM.LMV.Auth.addAuthHeaders( xmlReq );
+
+        xmlReq.send();
+    }
+    
+    this.processDefectsEditMode = function(request, _self) {
+
+        var mboSet = JSON.parse( request.responseText );
+        this.viewList = mboSet.BIMLMVDEFECTVIEWMboSet.BIMLMVDEFECTVIEW;
+        if(this.viewList != null && this.viewList.length > 0)
+       {
+           var view = this.viewList[0];
+           var decoded = window.atob( view.Attributes.VIEWERSTATE.content );
+           var state = JSON.parse( decoded );
+           this.viewer.restoreState( state ); 
+           setTimeout( function() {   
+             _self.markup.enterEditMode();
+           }, 1000 );
+        } else {
+           _self.markup.enterEditMode();
+        }   
+    }
 	
 	this.showMarkup = function(
 		viewer,
@@ -127,6 +210,7 @@ IBM.LMV.Markup.MarkupMgr = function(
 		this.init( viewer );
 
 		// Persumable the viewer is not fully initialized.
+		//Test markup
 		if( this.markup == null ) return;
 		
 		try
@@ -143,12 +227,110 @@ IBM.LMV.Markup.MarkupMgr = function(
 		{
 			this.markup.loadMarkups( markupData, layerName );
 		}
-		new IBM.LMV.Markup.CancelMarkupViewButton( IBM.LMV.viewer.container, this );
+		IBM.LMV.Markup.LeaveViewModeButton = new IBM.LMV.Markup.CancelMarkupViewButton( IBM.LMV.viewer.container, this );
 		
 		var evt = { target : this.markup, type : IBM.LMV.Markup.EVENT_SHOW };
 		this.fireEditModeEvent( evt );
 	}
+    
+	this.showDefectMarkups = function(
+		viewer,
+		assetloc,
+        renderId
+	) {
+		this.init( viewer );
+        this.renderId = renderId;
+        if(this.markup != null) {
+           this.getDefectMarkupsByAssetLocNum(assetloc, this.markup);
+            
+        }
+        
+	}
+    
+  this.getDefectMarkupsUrl = function(assetloc) {
+		var appId = window.parent.APPID; 
+    var oslcURL = IBM.LMV.Auth.getOslcURL();
+    var url = location.protocol + "//" + location.hostname +oslcURL; 
+		url = url + "/service/bimlmv?action=wsmethod:getAssetLocationMarkups" ;
+	  url = url + "&modelId=" + IBM.LMV.modelId;
+	  url = url + "&siteId=" + IBM.LMV.siteId;
+		url = url + "&assetloc=" + assetloc;
+		if(appId === "asset")
+		{
+			url = url + "&isAsset=1";
+		}
+		else
+		{
+			url = url + "&isAsset=0";
+		}
+		
+        return url;
+  }
+    
+  this.getDefectMarkupsByAssetLocNum = function(assetloc, markup) 
+	{
+		var _self = this;
+		var url = this.getDefectMarkupsUrl(assetloc);
 
+		var xmlReq = new XMLHttpRequest();
+		xmlReq.onreadystatechange = function() { _self.renderMarkups( this, assetloc, markup); };
+		xmlReq.open( "GET", url, true );
+		IBM.LMV.Auth.setRequestHeaders( xmlReq );
+		IBM.LMV.Auth.addAuthHeaders( xmlReq );
+
+		xmlReq.send();
+	};
+    
+    this.renderMarkups = function( request, assetloc, markup)
+	{
+		if( request.readyState != 4 )  
+		{ 
+			return; 
+		}
+
+		if( request.status != 200 )
+		{
+			IBM.LMV.RESTError( request.status, IBM.LMV.Strings.ERR_REST, request.responseText );
+			this.uninitialize();
+			return;
+		}
+
+		var returnedJson = JSON.parse( request.responseText );
+		this.defectMarkups = JSON.parse(returnedJson.return);
+        
+    this.setViewerState(this.defectMarkups);
+    this.displayMarkups(markup, this.defectMarkups, assetloc);
+        
+	};
+    
+    this.setViewerState = function(defectMarkups) {
+        var viewerState = defectMarkups.viewerState;
+        if(viewerState != null && viewerState != "") {
+            var decodedViewerState = window.atob( viewerState );
+		    var viewerStateObject = JSON.parse( decodedViewerState );
+            this.viewer.restoreState( viewerStateObject ); 
+        }
+    }
+    
+    this.displayMarkups = function(markup, defectMarkups, assetloc) {
+        
+        var _self = this;
+        setTimeout( function() {   
+            try
+            {
+                var camera = IBM.LMV.viewer.getCamera();
+                markup.show();
+            }
+            catch( e )
+            {
+                return;
+            }
+            IBM.LMV.Markup.LeaveViewModeButton = new IBM.LMV.Markup.CancelMarkupViewButton( IBM.LMV.viewer.container, _self );
+            markup.loadMarkups(defectMarkups.markupData, assetloc);
+            markup.enterEditMode(assetloc); 
+        }, 1000 );
+    }
+    
 	this.hideMarkup = function()
 	{
 		this.markup.hide();
@@ -321,7 +503,6 @@ IBM.LMV.Markup.MarkupMgr = function(
 			var nsu = Autodesk.Viewing.Extensions.Markups.Core.Utils; 
 			var selectedMarkup = evt.target;
 			var defaultStyle   = selectedMarkup.editor.defaultStyle;
-
 			if( selectedMarkup )
 			{
 				if( selectedMarkup.type == "label" )
@@ -356,8 +537,50 @@ IBM.LMV.Markup.MarkupMgr = function(
 				
 				this.styleDlg.setValue( this.currentStyle, this.isText );
 			}
-		}
+		} else {
+            var nsu = Autodesk.Viewing.Extensions.Markups.Core.Utils; 
+			var selectedMarkup = evt.target;
+            var defectNumber = this.getDefectNumber(selectedMarkup);
+            if(defectNumber != "" && defectNumber != null) {
+                var ticketUId = '{"ticketuid":"'+defectNumber+'"}';
+                var appId = window.parent.APPID;
+
+                if(appId === "asset") 
+                {
+                     window.parent.sendEvent('SHOWBIMDEFECTDETAILS', appId, ticketUId); 
+                }
+                else if(appId === "location")
+                {
+                    window.parent.sendEvent('SHOWBIMDEFECTDETAILSLOC', appId, ticketUId);
+                }
+            }
+
+    }
+        
 	}
+    
+    this.getDefectNumber = function(selectedMarkup) {
+        var defectNumber = ""; 
+        var position = selectedMarkup.position;
+        var positionString = this.getContactedString(position);
+        var size = selectedMarkup.size;
+        var sizeString = this.getContactedString(size);
+        var type = selectedMarkup.type;
+        var defectList = this.defectMarkups.defectMarkups;
+        for(var i = 0; i < defectList.length; i++) {
+            var defect = defectList[i];
+            if(type == defect.type && positionString == defect.position && sizeString == defect.size) {
+              defectNumber = defect.defectNumber;  
+            }
+        }
+        
+        return defectNumber;
+    }
+
+    this.getContactedString = function(markupAttributeObject) {
+        var attribute = markupAttributeObject.x + " " + markupAttributeObject.y;       
+        return attribute;        
+    }           
 	
 	this.fireEditModeEvent = function(
 		evt
@@ -399,7 +622,8 @@ IBM.LMV.Markup.Toolbar = function(
 	this.markup        = markupMgr.markup;
 	
 	this.toolBarDiv    = null;
-	
+    this.appType = markupMgr.appType;
+	this.renderId = markupMgr.renderId;
 	this.toolActive    = null;
 	this.toolArrow     = null;
 	this.toolCloud     = null;
@@ -525,10 +749,57 @@ IBM.LMV.Markup.Toolbar = function(
 
 		var buttonMaximoOpt = new Autodesk.Viewing.UI.Button("Markup_fileabr_submenu.saveMarkup");
 		buttonMaximoOpt.icon.style.backgroundImage = "url(" + IBM.LMV.PATH_IMAGES + "360_save.png )";
-		buttonMaximoOpt.setToolTip( IBM.LMV.Strings.MARKUP_SAVE );
-		buttonMaximoOpt.onClick = function() { _self.saveMarkup(); };
-		subToolbar.addControl( buttonMaximoOpt );
+		buttonMaximoOpt.setToolTip( IBM.LMV.Strings.MARKUP_DEFECT );
+        //TODO make constans available here as well
+		var appId = window.parent.APPID;
+		var markupData = "";
 		
+
+
+        if(appId === "asset") {
+           	buttonMaximoOpt.onClick = function() { 
+			var markupDataCount = IBM.LMV.markup.markups.length;
+	
+			if( markupDataCount > 0 )
+	   		{    
+	     		markupData = IBM.LMV.markup.generateData();       
+	   		}
+			
+			var buildingmodelid = IBM.LMV.modelId;
+		   	var state = IBM.LMV.viewer.getState();
+		   	var stateJSON = JSON.stringify( state ) ;
+		   	var viewerState = btoa( stateJSON );
+		   	
+			var markupObj = {'buildingmodelid': buildingmodelid, "viewerState": viewerState, "markupData": markupData, "markupDataCount": markupDataCount};
+			var markup = JSON.stringify(markupObj);
+			window.parent.sendEvent('CREATEBIMDEFECT', appId, markup );
+            _self.markupMgr.cancelMarkup();    
+           };
+        } else if(appId === "location") {
+			buttonMaximoOpt.onClick = function() { 
+				var markupDataCount = IBM.LMV.markup.markups.length;
+				
+				if( markupDataCount > 0 )
+		   		{    
+		     		markupData = IBM.LMV.markup.generateData();       
+		   		}
+	
+				var buildingmodelid = IBM.LMV.modelId;
+			   	var state = IBM.LMV.viewer.getState();
+			   	var stateJSON = JSON.stringify( state ) ;
+			   	var viewerState = btoa( stateJSON );
+			   	
+				var markupObj = {'buildingmodelid': buildingmodelid, "viewerState": viewerState, "markupData": markupData, "markupDataCount": markupDataCount};
+				var markup = JSON.stringify(markupObj);
+				window.parent.sendEvent('CREATEBIMDEFECTLOC', appId, markup );
+				_self.markupMgr.cancelMarkup();
+           	};
+		} else {
+		   	buttonMaximoOpt.setToolTip( IBM.LMV.Strings.MARKUP_SAVE );
+           	buttonMaximoOpt.onClick = function() { _self.saveMarkup(); };
+        }
+        subToolbar.addControl( buttonMaximoOpt );
+
 		buttonMaximoOpt = new Autodesk.Viewing.UI.Button("Markup_fileabr_submenu.cancelMarkup");
 		buttonMaximoOpt.icon.style.backgroundImage = "url(" + IBM.LMV.PATH_IMAGES + "360_cancel.png )";
 		buttonMaximoOpt.setToolTip( IBM.LMV.Strings.MARKUP_CANCEL );

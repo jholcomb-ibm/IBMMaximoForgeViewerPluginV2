@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+* Copyright IBM Corporation 2009-2017
+*
+* Licensed under the Eclipse Public License - v 1.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* https://www.eclipse.org/legal/epl-v10.html
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+* 
+-->
+<!DOCTYPE script SYSTEM "script.dtd">
+<script author="Josh Holcomb" scriptname="Maximo for Buildings 7.6.1.2">
+	<description>Maximo for Buildings 7.6.1.2 Autodesk Forge Viewer support</description>
+	<statements>
+		<!--
+		- Set to current viewer version
+		-->
+		<set_property name='bim.viewer.LMV.viewer.version' value='?v=v6.3'/>
+		<!--
+		- Add properties to dynamically include the viewer libraries
+		-->
+		<add_property name='bim.viewer.LMV.viewer.style' description='Autodesk JavaScript viewer style sheet' maxtype='ALN' secure_level='secure' default_value='https://developer.api.autodesk.com/modelderivative/v2/viewers/6.*/style.min.css'/>
+		<add_property name='bim.viewer.LMV.viewer.three' description='Autodesk JavaScript viewer Three JavaScript library' maxtype='ALN' secure_level='secure' default_value=''/>
+		<add_property name='bim.viewer.LMV.viewer.viewer3D' description='Autodesk JavaScript viewer Viewer3D JavaScript library' maxtype='ALN' secure_level='secure' default_value='https://developer.api.autodesk.com/modelderivative/v2/viewers/6.*/viewer3D.min.js'/>
+	</statements>
+</script>

@@ -534,7 +534,13 @@ function ModelManager(
 			if( modelMgr == null ) return;
 			var model = modelMgr.getCurrentModel();
 			if( model == null ) return;
-			var value = model.location + ";" + model.binding  + ";";
+			
+			// MXBIM-7 - Get the correct location from the event
+			var sel = this.getEffectiveLocation();
+			if( sel == "" ) return;
+
+			var value = model.location + ";" + sel  + ";";
+			//var value = model.location + ";" + model.binding  + ";";
 			window.parent.sendEvent(  "BIM_NS", this.renderId, value );
 			selMgr.setMultiSelect( false );
 		}
@@ -546,7 +552,12 @@ function ModelManager(
 			var model = modelMgr.getCurrentModel();
 			if( model == null ) return;
 			
-			var value = model.location + ";" + model.binding  + ";";
+			// MXBIM-8 - Get the correct location from the event
+			var sel = this.getEffectiveLocation();
+			if( sel == "" ) return;
+
+			var value = model.location + ";" + sel  + ";";			
+			//var value = model.location + ";" + model.binding  + ";";
 			window.parent.sendEvent(  "BIM_US", this.renderId, value );
 			selMgr.setMultiSelect( false );
 		}

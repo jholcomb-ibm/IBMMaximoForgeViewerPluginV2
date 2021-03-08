@@ -25,20 +25,28 @@
 	String lmvtheme    = server.getProperty( "bim.viewer.LMV.theme" );
 	if( lmvtheme == null ) lmvtheme = "8"; 
 	
-	String three     = "https://" + adHost + "/viewingservice/v1/viewers/three.min.js" + lmvversion;
-	String style     = "https://" + adHost + "/viewingservice/v1/viewers/style.css" + lmvversion;
-	String viewer3D  = "https://" + adHost + "/viewingservice/v1/viewers/viewer3D.js" + lmvversion;
+	//String three     = "https://" + adHost + "/viewingservice/v1/viewers/three.min.js" + lmvversion;
+	//String style     = "https://" + adHost + "/viewingservice/v1/viewers/style.css" + lmvversion;
+	//String viewer3D  = "https://" + adHost + "/viewingservice/v1/viewers/viewer3D.js" + lmvversion;
+	String style     = server.getProperty( "bim.viewer.LMV.viewer.style" );
+	String three     = server.getProperty( "bim.viewer.LMV.viewer.three" );
+	String viewer3D  = server.getProperty( "bim.viewer.LMV.viewer.viewer3D" );
 	String lmvworker = "https://" + adHost + "/viewingservice/v1/viewers/lmvworker.js" + lmvversion;
 %>
-
+<% if(style != null && !style.equals(""))	{ %>
 <link rel="stylesheet" type="text/css" href="<%=style%>" />
+<% } %>
 <link rel="stylesheet" type="text/css" href="<%=CSS_PATH%>LMV.css" />
+<% if(three != null && !three.equals(""))	{ %>
 <script type = "text/javascript" 
 	src="<%=three%>">
 </script>
+<% } %>
+<% if(viewer3D != null && !viewer3D.equals(""))	{ %>
 <script type = "text/javascript" 
 	src="<%=viewer3D%>">
 </script>
+<% } %>
 <!--
 <script  type = "text/javascript" 
 	src="<%=lmvworker%>">

@@ -156,6 +156,9 @@
 			</property>
 			<property name="height"/>
 			<property name="width"/>
+			<property name="controltop"/>
+			<property name="controlleft"/>
+			<property name="controltarget"/>
 			<property name="topoffset"/>
 			<property name="leftoffset"/>
 			<property name="multiselect"/>
@@ -176,8 +179,8 @@
 			<components id="${name}_components_v" layout="vertical" >
 				<components id="${name}_components_h" layout="horizontal" >
 					<bimviewer id="${name}_model" dataattribute="@{dataattribute}" modelattribute="@{modelattribute}" 
-							   height="@{height}" width="@{width}" topoffset="@{topoffset}" leftoffset="@{leftoffset}" multiselect="@{multiselect}" 
-							   side_pannel_width="@{side_pannel_width}" 
+							   height="@{height}" width="@{width}" controltop="@{controltop}" controlleft="@{controlleft}" topoffset="@{topoffset}" leftoffset="@{leftoffset}" multiselect="@{multiselect}" 
+							   controltarget="@{controltarget}" side_pannel_width="@{side_pannel_width}" 
 					           foreground_color="@{foreground_color}" background_color="@{background_color}" highlight_color="@{highlight_color}" boarder_color="@{boarder_color}" 
 							   tabgroup="@{tabgroup}" tab="@{tab}" manage_visibility="@{manage_visibility}"  selection_enabled="@{selection_enabled}"/>
 				</components>
@@ -185,6 +188,32 @@
 		</component-list>
 		<containers>
 			<container name="section"/>
+		</containers>
+	</control-descriptor>
+
+	<control-descriptor name="bimtarget">
+		<property-list>
+
+			<property name="id">
+				<flag name="final"/>
+			</property>
+			<property name="topoffset"/>
+			<property name="leftoffset"/>
+			<property name="height"/>
+			<property name="width"/>
+
+		</property-list>
+		<component-list>
+			<components id="${name}_components_v" layout="vertical" >
+				<components id="${name}_components_h" layout="horizontal" >
+					<bimtarget id="${name}_targ" topoffset="@{topoffset}" leftoffset="@{leftoffset}" height="@{height}" width="@{width}" />
+				</components>
+			</components>
+		</component-list>
+		<containers>
+			<container name="section" />
+			<container name="sectioncol" />
+			<container name="tab" />
 		</containers>
 	</control-descriptor>
 	

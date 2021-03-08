@@ -330,7 +330,7 @@ IBM.LMV.Markup.ShowDlg = function(
 		if( height > parentHeight -50 )
 		{
 			this.container.style.top = 0;
-			this.scrollContainer.style.height = "" + (parentHeight - 75) + "px";
+			//this.scrollContainer.style.height = "" + (parentHeight - 75) + "px";
 		}
 		else
 		{
@@ -376,7 +376,7 @@ IBM.LMV.Markup.ShowDlg.prototype.setVisible = function(
 		cell.innerHTML = IBM.LMV.Strings.DLG_BTN_CLOSE;
 		this.initializeCloseHandler( cell );
 
-		this.container.appendChild( btnBar );
+		//this.container.appendChild( btnBar );
 		
 		this.addEventListener( cell, 'click', function (e) {
 			_self.uninitialize();
@@ -394,6 +394,7 @@ IBM.LMV.Markup.ShowDlg.prototype.setVisible = function(
 		cell                     = this.header.insertCell( 3 );
 
 		this.scrollContainer.appendChild( this.viewTable );
+		this.scrollContainer.appendChild( btnBar );
 
 		var _self = this;
 		IBM.LMV.dataDictionary.getLabels( "BIMLMVWORKVIEW", function( mbo, labels ) { _self.onHeadings(  mbo, labels  ); } );
@@ -497,7 +498,7 @@ IBM.LMV.Markup.SaveDlg = function(
 		cell.innerHTML = IBM.LMV.Strings.DLG_BTN_CLOSE;
 		this.initializeCloseHandler( cell );
 
-		this.container.appendChild( btnBar );
+		//this.container.appendChild( btnBar );
 		
 		this.addEventListener( cell, 'click', function (e) {
 			_self.uninitialize();
@@ -569,6 +570,7 @@ IBM.LMV.Markup.SaveDlg = function(
 		cell.appendChild( this.detailsInput );
 
 		this.scrollContainer.appendChild( dlgTable );
+		this.scrollContainer.appendChild( btnBar );
 	}
 	
 	this.onLabelLookup = function(

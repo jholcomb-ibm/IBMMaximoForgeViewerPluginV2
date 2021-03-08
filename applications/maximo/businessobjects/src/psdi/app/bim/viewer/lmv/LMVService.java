@@ -21,12 +21,16 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.rmi.RemoteException;
 import java.security.GeneralSecurityException;
+import java.util.List;
 
 import javax.jws.WebMethod;
 import javax.jws.WebService;
 
+import com.ibm.json.java.JSONObject;
+
 import psdi.app.bim.viewer.BuildingModel;
 import psdi.app.bim.viewer.dataapi.DataRESTAPI;
+import psdi.app.bim.viewer.lmv.util.MarkupUtils;
 import psdi.app.bim.viewer.dataapi.FileReference;
 import psdi.app.bim.viewer.dataapi.Result;
 import psdi.app.bim.viewer.dataapi.ResultAuthentication;
@@ -289,6 +293,47 @@ public class LMVService extends AppService implements LMVServiceRemote
 		savedViewSet.setWhere( sqlf.format() );
 		savedViewSet.reset();
 		return savedViewSet;
+	}
+
+	@Override
+	@WebMethod
+	public String getAssetLocationMarkups(
+			UserInfo userInfo,
+			String   modelId,
+			String	 assetloc,
+			String   siteId,
+			Boolean   isAsset
+		) 
+				throws RemoteException, MXException 
+	{
+
+		String bimMarkups = "";
+		String ASSET_LOC = isAsset ? "assetnum" : "location";
+		String bimMarkupSVGString = "";
+		List<String> bimMarkupsList = null;
+		JSONObject bimDefectMarkups = new JSONObject();
+		
+		MboSetRemote savedViewSet = _mxServer.getMboSet( "BIMLMVDEFECTVIEW", userInfo );
+		String query = null;
+
+		query = SavedView.FIELD_BUILDINGMODELID + "=:1 AND " + SavedView.FIELD_SITEID + "=:2 "+ " AND " + ASSET_LOC + " = :3"; 
+		SqlFormat sqlf = new SqlFormat( query );
+		sqlf.setObject( 1, "BIMLMVDEFECTVIEW", SavedView.FIELD_BUILDINGMODELID, modelId );
+		sqlf.setObject( 2, "BIMLMVDEFECTVIEW", SavedView.FIELD_SITEID, siteId );
+		sqlf.setObject( 3, "BIMLMVDEFECTVIEW", ASSET_LOC, assetloc );
+
+		savedViewSet.setWhere( sqlf.format() );
+		savedViewSet.reset();
+		bimDefectMarkups = MarkupUtils.generateDefectSvgMboSet(savedViewSet);
+		bimMarkupsList = MarkupUtils.generateMarkupSvgMboSet(savedViewSet);
+		bimMarkups = MarkupUtils.generateMarkupSvgString(bimMarkupsList);
+		bimDefectMarkups.put("markupData", bimMarkups);
+		try {
+			bimMarkupSVGString = bimDefectMarkups.serialize(true);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return bimMarkupSVGString;
 	}
 
 	@Override

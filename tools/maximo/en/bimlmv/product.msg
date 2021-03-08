@@ -666,4 +666,34 @@
     <explanation></explanation>
     <response></response>
   </message>
+  <message id="BIMFV0135I" group="bimlmv" key="create_defect_btn" prefix="false" options_value="0" displaymethod="TEXT" otherscrc="4679432656" valuecrc="8465724578" explanationcrc="0" responsecrc="0">
+    <value>Create New Defect</value>
+    <explanation></explanation>
+    <response></response>
+  </message>
+  <message id="BIMFV0136I" group="bimlmv" key="MARKUP_DEFECT" prefix="false" options_value="0" displaymethod="TEXT" otherscrc="18536702" valuecrc="84587860" explanationcrc="0" responsecrc="0">
+    <value>Save markup with defect</value>
+    <explanation></explanation>
+    <response></response>
+  </message>
+  <message id="BIMFV0137I" group="bimlmv" key="record-saved" prefix="false" options_value="0" displaymethod="TEXT" otherscrc="18536502" valuecrc="84284860" explanationcrc="0" responsecrc="0">
+    <value>The markup was saved successfully with the defect.</value>
+    <explanation></explanation>
+    <response></response>
+  </message>
+  <message id="BIMFV0138I" group="bimlmv" key="show_defect_markups" prefix="false" options_value="0" displaymethod="TEXT" otherscrc="3676822656" valuecrc="6468524578" explanationcrc="0" responsecrc="0">
+    <value>Show Defect Markups</value>
+    <explanation></explanation>
+    <response></response>
+  </message>
+  <message id="BIMFV0138I" group="bimlmv" key="NO_MARKUP" prefix="false" options_value="0" displaymethod="MSGBOX" otherscrc="3275862656" valuecrc="2467214578" explanationcrc="0" responsecrc="0">
+    <value>A markup does not exist on the model.</value>
+    <explanation></explanation>
+    <response></response>
+  </message>
+  <message id="BIMFV0138I" group="bimlmv" key="ONLY_ONE_MARKUP" prefix="false" options_value="0" displaymethod="MSGBOX" otherscrc="4275832656" valuecrc="5467243578" explanationcrc="0" responsecrc="0">
+    <value>Multiple markups exist on the model. Only one markup can be saved.</value>
+    <explanation></explanation>
+    <response></response>
+  </message>
 </messages>

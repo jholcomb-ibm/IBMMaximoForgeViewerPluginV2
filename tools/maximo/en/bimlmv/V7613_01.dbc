@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE script SYSTEM "script.dtd">
+<script author="jholcomb" scriptname="Maximo for Buildings Menu Items" for_demo_only="false">
+	<description>Maximo for Buildings Menu Items</description>
+	<statements>
+	
+	<delete table="maxmenu">
+		<where>
+          <columnvalue column="menutype" string="MODULE" />
+          <columnvalue column="moduleapp" string="BIM" />
+          <columnvalue column="elementtype" string="APP" />
+          <columnvalue column="keyvalue" string="PRODUCT" />
+     	</where>
+	</delete>
+	
+	<delete table="maxmenu">
+		<where>
+			<columnvalue column="menutype" string="MODULE" />
+			<columnvalue column="moduleapp" string="BIM" />
+			<columnvalue column="elementtype" string="APP" />
+			<columnvalue column="keyvalue" string="DESIGNSPEC" />
+    	</where>
+	</delete>
+  
+	<insert table="maxmenu" ignore_duplicates="true">
+		<insertrow>
+			<columnvalue column="MENUTYPE" string="MODULE" />
+			<columnvalue column="MODULEAPP" string="BIM" />
+			<columnvalue column="POSITION" number="96050" />
+			<columnvalue column="SUBPOSITION" number="30" />
+			<columnvalue column="ELEMENTTYPE" string="APP" />
+			<columnvalue column="KEYVALUE" string="PRODUCT" />
+			<columnvalue column="VISIBLE" boolean="true" />
+			<columnvalue column="IMAGE" string="bim/appimg_product.gif" />
+		</insertrow>
+	</insert>
+  
+	<insert table="maxmenu" ignore_duplicates="true">
+		<insertrow>
+			<columnvalue column="MENUTYPE" string="MODULE" />
+			<columnvalue column="MODULEAPP" string="BIM" />
+			<columnvalue column="POSITION" number="96050" />
+			<columnvalue column="SUBPOSITION" number="40" />
+			<columnvalue column="ELEMENTTYPE" string="APP" />
+			<columnvalue column="KEYVALUE" string="DESIGNSPEC" />
+			<columnvalue column="VISIBLE" boolean="true" />
+			<columnvalue column="IMAGE" string="bim/appimg_product.gif" />
+		</insertrow>
+	</insert>
+	
+	</statements>
+</script>

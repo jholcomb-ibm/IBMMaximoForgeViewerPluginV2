@@ -4515,7 +4515,7 @@
 		<add before="searchclassificationproduct" container="library" control="dialog">
 			<set property="beanclass" value="psdi.webclient.system.beans.LookupBean"/>
 			<set property="id" value="query_lookup_product"/>
-			<set property="label" value="Lookup Product"/>
+			<set property="label" value="Select Product"/>
 			<set property="mboname" value="BIMPRODUCT"/>
 		</add>
 		<add container="query_lookup_product" control="table">

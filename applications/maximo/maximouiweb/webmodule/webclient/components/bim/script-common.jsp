@@ -28,6 +28,8 @@
 	var selMgr     = null;
 	var viewer     = null;
 	var maximoIntf = null;
+	var targetWidth = null;
+	var targetHeight = null;
 	function initModelManager()
 	{
 		/* Cause the whole frame not just the viewer to auto hide 
@@ -288,6 +290,7 @@
 			_height = 300;
 			break;
 		case "0":			// Default
+				// if the height or width is 1 (not set), it will be corrected in setSize()
 			_width  = "<%=width%>";
 			_height = <%=height%>;
 			break;
@@ -321,12 +324,12 @@
 			break;
 		}
 		
-		var tmp = Number( _width );
-		if( "" + tmp != "NaN"  )
-		{
-			_width = _width - <%=leftOffset%>;
-			if( _width < 954 ) _width = 954;
-		}
+		//var tmp = Number( _width );
+		//if( "" + tmp != "NaN"  )
+		//{
+		//	_width = _width - <%=leftOffset%>;
+		//	if( _width < 954 ) _width = 954;
+		//}
 		setSize( );
 
 		if( id < 0 || id > 7 ) return;
@@ -337,21 +340,95 @@
 		}
 	}
 
-	function setSize()
+	function resizeTo(newHeight, newWidth)
 	{
-		var cssWidth = _width;
-		var tmp = Number( _width );
-		if( "" + tmp != "NaN"  )
-		{
-			cssWidth = "" + (tmp - 8) + "px"
+		//_width  = newWidth;
+		//_height = newHeight;
+		//setSize();
+	}
+	
+    function locRectToWindRect( elem ) {
+		var target = elem;
+		var target_width = target.offsetWidth;
+		var target_height = target.offsetHeight;
+		var target_left = target.offsetLeft;
+		var target_top = target.offsetTop;
+		var gleft = 0;
+		var gtop = 0;
+		var rect = {};
+
+		var getHigher = function( parentElem ) {
+			if (!!parentElem) {
+				gleft += parentElem.offsetLeft;
+				gtop += parentElem.offsetTop;
+				getHigher( parentElem.offsetParent );
+			} else {
+				return rect = {
+					top: target.offsetTop + gtop,
+					left: target.offsetLeft + gleft,
+					bottom: (target.offsetTop + gtop) + target_height,
+					right: (target.offsetLeft + gleft) + target_width
+				};
+			}
+		};
+		getHigher( target.offsetParent );
+		return rect;
+	}
+	
+	function placeViewer( elem, targ ) {
+		var elemRect = locRectToWindRect( elem );
+		var targRect = locRectToWindRect( targ );
+		
+		// elem position is relative, so subtract the window difference from the curent top and left
+		if( elem.style.top != "" ) {
+			var newTop = (parseInt(elem.style.top, 10) + (targRect.top - elemRect.top)) + "px";
+			elem.style.top = newTop;
+		}
+		if( elem.style.left != "" ) {
+			var newLeft = (parseInt(elem.style.left, 10) + (targRect.left - elemRect.left)) + "px";
+			elem.style.left = newLeft;
+		}
+		if( elem.style.width != "" ) {
+			targetWidth = parseInt(targ.style.width, 10);
+		}
+		if( elem.style.height != "" ) {
+			targetHeight = parseInt(targ.style.height, 10);
 		}
 		
-		var height = _height;
-		<% if( viewerVendor == VENDOR_A360 )
-		{ %>
-			height = height + <%=V_INSET%> + <%=toolbar_height%>;
-		<%}%>
+	}
+	
+	function setSize()
+	{
 
+		var fLoc = window.top.document.getElementById("<%=id%>_frameLoc");
+		if(fLoc != null && fLoc != undefined)
+		{
+			// if the height or width is 1 (not set), set them so that the control takes up the hight or width of the screen
+			if(_height == 1)
+		{
+				//_height = (window.top.document.documentElement.clientHeight - parseInt(fLoc.style.top, 10) - 30);
+				if( targetHeight == null) {
+					_height = (window.top.document.documentElement.clientHeight - parseInt(fLoc.style.top, 10) - 25);
+				} else {
+					_height = targetHeight;
+				}
+				fLoc.style.height = _height + "px";
+		}
+			if(_width == "1")
+			{
+				//_width = (window.top.document.documentElement.clientWidth - parseInt(fLoc.style.left, 10) - 30) + "";
+				if( targetWidth == null ) {
+					_width = (window.top.document.documentElement.clientWidth - parseInt(fLoc.style.left, 10) - 25);
+				} else {
+					_width = targetWidth;
+				}
+				fLoc.style.width = _width; //  + "px" is added later
+			}
+			//_height  = parseInt(fLoc.style.height, 10) + "";
+			//_width = parseInt(fLoc.style.width, 10);
+		}
+		var cssWidth = _width + "px"
+		var height = _height;
 
 
 		var frames = window.top.document.getElementsByTagName("IFRAME");
@@ -363,6 +440,22 @@
 			{
 				f.style.height = "" + _height + "px";;
 				f.style.width  = cssWidth;
+				
+				console.log("script-common setSize(): " + f.style.height + ", " + f.style.width);
+				// floating div that contains the iframe
+				var fLoc = window.top.document.getElementById("<%=id%>_frameLoc");
+				if(fLoc != null && fLoc != undefined)
+				{
+					fLoc.style.height = f.style.height;
+					fLoc.style.width  = f.style.width;
+				}
+				// div that is the placeholder (for scrolling) for the floating div
+				var fSpace = window.top.document.getElementById("<%=id%>_frameSpace");
+				if(fSpace != null && fSpace != undefined)
+				{
+					fSpace.style.height = f.style.height;
+					fSpace.style.width  = f.style.width;
+				}
 				break;
 			}
 		}

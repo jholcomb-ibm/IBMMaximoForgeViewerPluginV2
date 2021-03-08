@@ -107,6 +107,7 @@ private static class StringTable
 	final String keyMarkupStart;
 	final String keyMarkupCancel;
 	final String keyMarkupSave;
+	final String keyDefectMarkup;
 	final String keyMarkupShow;
 	final String keyMarkupArrow;
 	final String keyMarkupCloud;
@@ -117,6 +118,8 @@ private static class StringTable
 	final String keyMarkupText;
 	
 	final String keyResizeBtn;
+	final String createDefectBtn;
+	final String showDefectMarkups;
 
 
 		
@@ -208,6 +211,7 @@ private static class StringTable
  		keyMarkupStart         = server.getMessage(group, "MARKUP_START_EDIT", langCode); 
  		keyMarkupCancel        = server.getMessage(group, "MARKUP_CANCEL", langCode); 
  		keyMarkupSave          = server.getMessage(group, "MARKUP_SAVE", langCode); 
+ 		keyDefectMarkup        = server.getMessage(group, "MARKUP_DEFECT", langCode);
  		keyMarkupShow          = server.getMessage(group, "MARKUP_SHOW", langCode); 
  		keyMarkupArrow         = server.getMessage(group, "MARKUP_ARROW", langCode); 
  		keyMarkupCloud         = server.getMessage(group, "MARKUP_CLOUD", langCode); 
@@ -220,6 +224,8 @@ private static class StringTable
 		keyColorRed            = server.getMessage(group, "NAKRUP_RED", langCode); 
 		keyColorGreen          = server.getMessage(group, "MAKRUP_GREEN", langCode); 
 		keyColorBlue           = server.getMessage(group, "MARKUP_BLUE", langCode); 
+	 	createDefectBtn        = server.getMessage(group, "create_defect_btn", langCode);
+	 	showDefectMarkups	   = server.getMessage(group, "show_defect_markups", langCode);
 
 	}
 }
@@ -295,6 +301,7 @@ private static class StringTable
         IBM.LMV.Strings.MARKUP_CANCEL              = "<%=stringTable.keyMarkupCancel%>";
         IBM.LMV.Strings.MARKUP_STYLE               = "<%=stringTable.dlgTitleMarkupStyle%>";
         IBM.LMV.Strings.MARKUP_SAVE                = "<%=stringTable.keyMarkupSave%>";
+        IBM.LMV.Strings.MARKUP_DEFECT              = "<%=stringTable.keyDefectMarkup%>";
         IBM.LMV.Strings.MARKUP_SHOW                = "<%=stringTable.keyMarkupShow%>";
         
         IBM.LMV.Strings.MARKUP_ARROW               = "<%=stringTable.keyMarkupArrow%>";
@@ -308,5 +315,7 @@ private static class StringTable
         IBM.LMV.Strings.MARKUP_RED                 = "<%=stringTable.keyColorRed%>";
         IBM.LMV.Strings.MARKUP_GREEN               = "<%=stringTable.keyColorGreen%>";
         IBM.LMV.Strings.MARKUP_BLUE                = "<%=stringTable.keyColorBlue%>";
+        IBM.LMV.Strings.create_defect_btn          = "<%=stringTable.createDefectBtn%>";
+        IBM.LMV.Strings.show_defect_markups        = "<%=stringTable.showDefectMarkups%>";
         
         IBM.LMV.Strings.MSG_CONFIRM_DELETE_MAKRUP  = "<%=stringTable.msgConfirmDeleteMarkup%>";

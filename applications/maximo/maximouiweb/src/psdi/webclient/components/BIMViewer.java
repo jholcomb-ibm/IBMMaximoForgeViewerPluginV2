@@ -54,6 +54,7 @@ import psdi.webclient.beans.workorder.WOAppBean;
 import psdi.webclient.controls.TabGroup;
 import psdi.webclient.system.beans.AppBean;
 import psdi.webclient.system.beans.DataBean;
+import psdi.webclient.system.beans.ResultsBean;
 import psdi.webclient.system.beans.WebClientBean;
 import psdi.webclient.system.controller.AppInstance;
 import psdi.webclient.system.controller.BaseInstance;
@@ -93,6 +94,7 @@ public class BIMViewer extends BoundComponentInstance
 	
 	public final static String PROP_DATA_ATTRIB  = "dataattribute";
 	public final static String PROP_MODEL_ATTRIB = "modelattribute";
+	public final static String PROP_CTRL_TARGET = "controltarget";
 	
 	public final static String FIELD_ASSETUID        = "ASSETUID";
     public final static String FIELD_ASSETNUM        = "ASSETNUM";
@@ -271,6 +273,8 @@ public class BIMViewer extends BoundComponentInstance
 	
 	private String _width  = "950px";
 	private int    _height = 468;
+	private int    _controlTop = 0;
+	private int    _controlLeft = 0;
 	private int    _topOffset = 0;
 	private int    _leftOffset = 0;
 
@@ -281,10 +285,17 @@ public class BIMViewer extends BoundComponentInstance
 	
 	private String _activeViewer = "navisworks";
 	
+	public void instantiatedatasrc()
+	{
+		super.instantiatedatasrc();
+		//System.out.println(">>> instantiatedatasrc: " + dataBean.getId());
+	}
+	
 	@Override
 	public void initialize() 
     {
         super.initialize();
+		//System.out.println(">>> initialize: " + dataBean.getId());
         
         //System.out.println(">>> BIMViewer component v6 " + (Thread.currentThread().getStackTrace()[3].toString()) + " ==> " + ((new Object() {}).getClass().getEnclosingMethod().getName()) );
         _wcs              = getWebClientSession();
@@ -406,25 +417,34 @@ public class BIMViewer extends BoundComponentInstance
 		}
 
 		tmp = getProperty("height");
-		_height = Integer.parseInt( tmp );
-		if( _height <= 0 )
-		{
-			_height = 368;
-		}   
+//		_height = Integer.parseInt( tmp );
+//		if( _height <= 0 )
+//		{
+//			_height = 368;
+//		}
+		_height = ((tmp == null || tmp.equals("")) ? 1 : Integer.parseInt(tmp)); 
 		
 		// This might be 100% or some other CSS string value
 		_width = getProperty("width");
-		int intVal = -1;
-		try
-		{ 
-			intVal = Integer.parseInt( _width );
-		}
-		catch( Throwable T )
-		{ /* Do Nothing */ }
-		if( intVal > 0 )
-		{
-			_width = "" + (intVal - _leftOffset);
-		}
+		_width = ((_width == null || _width.equals("")) ? "1" : _width); 
+		
+		tmp = getProperty("controltop");
+		_controlTop = ((tmp == null || tmp.equals("")) ? 0 : Integer.parseInt(tmp)); 
+		
+		tmp = getProperty("controlleft");
+		_controlLeft = ((tmp == null || tmp.equals("")) ? 0 : Integer.parseInt(tmp)); 
+		
+//		int intVal = -1;
+//		try
+//		{ 
+//			intVal = Integer.parseInt( _width );
+//		}
+//		catch( Throwable T )
+//		{ /* Do Nothing */ }
+//		if( intVal > 0 )
+//		{
+//			_width = "" + (intVal - _leftOffset);
+//		}
 		     
 		tmp = getProperty("selection_enabled");
 		if( tmp != null && tmp.length() > 0 )
@@ -521,7 +541,6 @@ public class BIMViewer extends BoundComponentInstance
 	public int checkVisibility()
 	{		
         //System.out.println(">>> BIMViewer component " + (Thread.currentThread().getStackTrace()[3].toString()) + " ==> " + ((new Object() {}).getClass().getEnclosingMethod().getName()) );
-        // -->> the control should have been moved within the tab now, so it's no longer required to hide it when it's not the 3d tab
 		PageInstance currentPage = getPage();
 		TabGroup maintab = (TabGroup) currentPage.getControlInstance( _tabGroupName );
 		boolean shouldAppVis = true;
@@ -659,17 +678,21 @@ public class BIMViewer extends BoundComponentInstance
 		_currentValue = modelId;
 		if( dataBean instanceof AppBean )
 		{
+			AppInstance app = _wcs.getCurrentApp();
 			AppBean appBean = (AppBean)dataBean;
 			if( appBean.saveYesNoInteractionCheck() )
 			{
-				appBean.getMboForUniqueId( uid );
-				dataBean.fireDataChangedEvent();
-				dataBean.fireStructureChangedEvent();
+				//changeBeanRecordSet(appBean, uid);
+//				appBean.getMboForUniqueId( uid );
+//				dataBean.fireDataChangedEvent();
+//				dataBean.fireStructureChangedEvent();
+				changeAppBeanRecordSet(app, appBean, uid);
 				_isSelectionValid = true;
 			}
 		}
 		else
 		{
+			changeBeanRecordSet(dataBean, uid);
 			dataBean.getMboForUniqueId( uid );
 			dataBean.fireDataChangedEvent();
 			dataBean.fireStructureChangedEvent();
@@ -682,6 +705,39 @@ public class BIMViewer extends BoundComponentInstance
 		}
 		return true;
 	}
+	
+	private void changeAppBeanRecordSet(AppInstance app, AppBean appBean, long uid)
+			throws RemoteException, MXException
+	{
+		ResultsBean resultsBean = app.getResultsBean();
+		MboRemote mbo = resultsBean.getMboSet().getMboForUniqueId(uid);
+		
+		if (mbo == null) // Add to results list if the selected record is not present
+		{
+			String userWhere = resultsBean.getUserWhere();
+			userWhere = userWhere.isEmpty() ? userWhere : userWhere + " or ";
+			userWhere = userWhere + "( " + appBean.getUniqueIdName() + " = " + uid + " )";
+			appBean.initializeApp();
+			resultsBean.resetQbe();
+			resultsBean.setUserWhere(userWhere);
+			resultsBean.reset();
+		}
+		
+		MboSetRemote resultsList = resultsBean.getMboSet();
+		int recordToSelect = 0;
+		
+		mbo = resultsList.getMbo(recordToSelect);
+		
+		while (mbo != null)
+		{
+			if (mbo.getUniqueIDValue() == uid)
+			{
+				break;
+			}
+			mbo = resultsList.getMbo(++recordToSelect);
+		}
+		resultsBean.highlightrow(recordToSelect);
+	}	
 	
 	//******************************************************************************
 	// The section has methods that are called from the .jsp to move data from
@@ -721,10 +777,14 @@ public class BIMViewer extends BoundComponentInstance
         //System.out.println(">>> BIMViewer component " + (Thread.currentThread().getStackTrace()[3].toString()) + " ==> " + ((new Object() {}).getClass().getEnclosingMethod().getName()) );
 		StringBuffer script = new StringBuffer();
 		script.append( "" );
+		//script.append( "debugger;" );
+		
+		
 		
 	    boolean designmode = _wcs.getDesignmode();
 
 		String containerTable   = id + "container";
+		String containerDiv   = id + "_frameLoc";
 
 		boolean needsRendered = needsRender();
 
@@ -740,7 +800,7 @@ public class BIMViewer extends BoundComponentInstance
 		String value   = null;
 		
 		// Set the top value
-		script.append( "try {debugger;" );
+		script.append( "try {" );
 		script.append( "var containerTbl = " + doc + "document.getElementById( \"" );
 		script.append( containerTable );
 		script.append( "\" ); " );
@@ -750,8 +810,12 @@ public class BIMViewer extends BoundComponentInstance
 		script.append( "}" );
 		
 		script.append( "var isLoaded = true; " );
-		script.append( "AF = window.frames." + id + "_frame; " );
-		script.append( "var frame = window.top.frames." + id + "_frame; " );
+		script.append( "var AF = " + doc + "document.getElementById( \"" );
+		script.append( id + "_frame" );
+		script.append( "\" ); " );
+		script.append( "var frame = AF; " );
+		//script.append( "AF = window.frames." + id + "_frame; " );
+		//script.append( "var frame = window.top.frames." + id + "_frame; " );
 		script.append( "if( frame != undefined && frame.contentWindow != undefined ) { " );
 			script.append( "frame = frame.contentWindow;" );	// Chrome
 		script.append( "} " );
@@ -769,7 +833,35 @@ public class BIMViewer extends BoundComponentInstance
 		// The to track the current state
 		boolean showModel = false;
 
+		script.append( "var containerDiv = " + doc + "document.getElementById( \"" );
+		script.append( containerDiv );
+		script.append( "\" ); " );
+		// initialize the viewer position, height and width prior to resize
+		if( isControlVisible() )
+		{
+			String controlTarget = getProperty( PROP_CTRL_TARGET );
+			if(controlTarget != null && !controlTarget.equalsIgnoreCase("")) {
+				ControlInstance bimTarget = getWebClientSession().getCurrentApp().getCurrentPage().getControlInstance( controlTarget );
+				if(bimTarget != null)
+				{
+					script.append( "var targetDiv = " + doc + "document.getElementById( \"" );
+					script.append( bimTarget.getRenderId() + "_bimtarget_targ" );
+					script.append( "\" ); " );
+					script.append( "if(containerDiv != null && targetDiv != null) { " );
+						script.append( "frame.placeViewer(containerDiv, targetDiv); " );
+					script.append( " } " );
+					
+				}
+			}
+		}
 		script.append( scriptResize() );
+
+		String visHid = ( isControlVisible() ? "visible" : "hidden" );
+		script.append( "if(containerDiv != null) { " );
+			script.append( "containerDiv.style.visibility = \"" );
+			script.append( visHid );
+			script.append( "\"; " );
+		script.append( " } " );
 
 		if( isControlVisible() )
 		{
@@ -780,9 +872,15 @@ public class BIMViewer extends BoundComponentInstance
 				script.append( showModel );
 				script.append( " ); " );
 			script.append( "} " );
+			
+//			script.append( "var containerDivHeight = parseInt(containerDiv.style.height, 10); " );
+//			script.append( "var containerDivWidth = parseInt(containerDiv.style.width, 10); " );
+//			script.append( "frame.resizeTo(containerDivHeight, containerDivWidth); " );
+//			script.append( "console.log(containerDivHeight + \", \" +  containerDivWidth); " );
+			
 		}
 
-		script.append( "var jdbg = \">>> isControlVisible: " + isControlVisible() + " showModel: " + showModel + " designmode: " + designmode + "\";" );  
+		//script.append( "var jdbg = \">>> isControlVisible: " + isControlVisible() + " showModel: " + showModel + " designmode: " + designmode + "\";" );  
 		//View tab is selected so the control should be visible on the page
 		if( isControlVisible() && showModel && !designmode )
 		{
@@ -898,7 +996,33 @@ public class BIMViewer extends BoundComponentInstance
 		
 		resize.append( opt );
 		resize.append( "\" ); } " );
+		
+		_width = getWidthFromResize(opt);
+		_height = getHeightFromResize(opt);
+		
 		return resize.toString();
+	}
+	
+	private String getWidthFromResize(int opt)
+	{
+		// note: we're only handling resize options 1 through 7.  -1 and 0 are special cases
+		String widths[] = new String[] { "1200", "1024", "1280", "1920", "1600", "1920", "1200" };
+		if(opt > 0 && ((opt - 1) < widths.length))
+		{
+			return widths[opt - 1];
+		}
+		return _width;
+	}
+	
+	private int getHeightFromResize(int opt)
+	{
+		// note: we're only handling resize options 1 through 7.  -1 and 0 are special cases
+		int heights[] = { 720, 768, 1024, 1080, 1200, 1200, 800 };
+		if(opt > 0 && ((opt - 1) < heights.length))
+		{
+			return heights[opt - 1];
+		}
+		return _height;
 	}
 	
 	/**
@@ -1176,6 +1300,16 @@ return _type; }
         //System.out.println(">>> BIMViewer component " + (Thread.currentThread().getStackTrace()[3].toString()) + " ==> " + ((new Object() {}).getClass().getEnclosingMethod().getName()) );
 		return _height;
 	}
+	
+	public int getControlTop()
+	{
+		return _controlTop;
+	}
+	
+	public int getControlLeft()
+	{
+		return _controlLeft;
+	}
 
 	/**
 	 * Get the key value for the bound Mbo: Location, assetnum, wonum
@@ -1332,6 +1466,10 @@ return _recordType; }
 			LocationRemote location = lookupLeafLocation();
 			
 			//System.out.println(">>> BIMViewer component itemHasModel location: " + location );
+			if( location == null )
+			{
+				//System.out.println(">>> BIMViewer component (location == null) " + (Thread.currentThread().getStackTrace()[3].toString()) + " ==> " + ((new Object() {}).getClass().getEnclosingMethod().getName()) );
+			}
 			if( location == null ) return false;
 			
 			modelList = new Vector<BIMModelSpec>();
@@ -1391,7 +1529,12 @@ return _recordType; }
 			}
 		}
 		_currentModelList = modelList;
+		if( modelList.size() > 0 )
+		{
+			//System.out.println(">>> BIMViewer component (modelList.size() > 0) " + (Thread.currentThread().getStackTrace()[3].toString()) + " ==> " + ((new Object() {}).getClass().getEnclosingMethod().getName()) );
+		}
 		if( modelList.size() > 0 ) return true;
+		//System.out.println(">>> BIMViewer component (just returned false, so modelList.size() <= 0) " + (Thread.currentThread().getStackTrace()[3].toString()) + " ==> " + ((new Object() {}).getClass().getEnclosingMethod().getName()) );
 		return false;
 	}
 	
@@ -1532,7 +1675,7 @@ return _controlVisible; }
 		MboRemote mbo = null;
 		if( getRecordType() == BIMViewer.RECORD_ASSET )
 		{
-			String locName = getDataBean().getString( FIELD_LOCATION );
+			String locName = dataBean.getString( FIELD_LOCATION );
 			if( locName == null || locName.length() == 0 ) return null;
 			mbo = lookupLocation( locName );
 	        //System.out.println(">>> BIMViewer component lookupLeafLocation BIMViewer.RECORD_ASSET, mbo: " + mbo);
@@ -1544,12 +1687,96 @@ return _controlVisible; }
 		}
 		else if( getRecordType() == RECORD_LOCATION )
 		{
-			mbo = getDataBean().getMbo();
-	        //System.out.println(">>> BIMViewer component lookupLeafLocation RECORD_LOCATION, mbo: " + mbo + " getDataBean(): " + getDataBean());
-	        //System.out.println(">>> BIMViewer component lookupLeafLocation getDataBean().getMboSet().getCompleteWhere()): " + getDataBean().getMboSet().getCompleteWhere());
+	        //System.out.println(">>> BIMViewer component lookupLeafLocation attempting YES reset(): " + dataBean.getMboSet().getCompleteWhere());
+//			boolean doReset = false;
+//	        if(dataBean.getMboSet().getAppWhere() == null)
+//	        {
+//	        	dataBean.getMboSet().setAppWhere("");
+//	        	doReset = true;
+//	        }
+//	        if(dataBean.getMboSet().getQbeWhere() != null && !dataBean.getMboSet().getQbeWhere().equalsIgnoreCase(""))
+//	        {
+//	        	dataBean.getMboSet().setRelationship("");
+//	        	doReset = true;
+//	        }
+//	        if(doReset)
+//	        {
+//		        dataBean.getMboSet().reset();
+//	        }
+			mbo = dataBean.getMbo(0);
+	        //System.out.println(">>> BIMViewer component lookupLeafLocation (mbo == null): " + (mbo == null));
+	        //System.out.println(">>> BIMViewer component lookupLeafLocation RECORD_LOCATION, dataBean.getMboSet().getName(): " + dataBean.getMboSet().getName() + " dataBean: " + dataBean);
+	        //System.out.println(">>> BIMViewer component lookupLeafLocation dataBean.getMboSet().getAppWhere()): " + dataBean.getMboSet().getAppWhere());
+	        //System.out.println(">>> BIMViewer component lookupLeafLocation dataBean.getMboSet().getQbeWhere()): " + dataBean.getMboSet().getQbeWhere());
+	        //System.out.println(">>> BIMViewer component lookupLeafLocation dataBean.getMboSet().getSelectionWhere()): " + dataBean.getMboSet().getSelectionWhere());
+	        //System.out.println(">>> BIMViewer component lookupLeafLocation dataBean.getMboSet().getUserWhere()): " + dataBean.getMboSet().getUserWhere());
+	        //System.out.println(">>> BIMViewer component lookupLeafLocation dataBean.getMboSet().getWhere()): " + dataBean.getMboSet().getWhere());
+	        //System.out.println(">>> BIMViewer component lookupLeafLocation dataBean.getMboSet().getRelationship()): " + dataBean.getMboSet().getRelationship() );
+	        //System.out.println(">>> BIMViewer component lookupLeafLocation dataBean.getMboSet().getCompleteWhere())4: " + dataBean.getMboSet().getCompleteWhere());
 			if(  mbo != null && mbo instanceof Location )
 			{
+		        //System.out.println(">>> BIMViewer component lookupLeafLocation (mbo != null): " + (mbo != null));
+		        //System.out.println(">>> BIMViewer component lookupLeafLocation (mbo instanceof Location): " + (mbo instanceof Location));
 				return (psdi.app.location.Location)mbo;
+			}
+			else
+			{
+		        //System.out.println(">>> BIMViewer component lookupLeafLocation (dataBean.getMboSet().getQbeWhere() != null): " + (dataBean.getMboSet().getQbeWhere() != null) );
+		        if(dataBean.getMboSet().getQbeWhere() != null && !dataBean.getMboSet().getQbeWhere().equals("")) // if the qbewhere has been set, use that
+		        {
+//					MboSetRemote locationSet = null;
+//					locationSet = _server.getMboSet( Constants.TABLE_LOCATIONS, dataBean.getMboSet().getUserInfo() );
+//					locationSet.setWhere( dataBean.getMboSet().getQbeWhere() );
+//					locationSet.reset();
+					String oldQBEWhere = dataBean.getMboSet().getQbeWhere();
+					dataBean.getMboSet().clear();
+			        //System.out.println(">>> BIMViewer component lookupLeafLocation QBE updating dataBean with clear()" );
+			        //System.out.println(">>> BIMViewer component lookupLeafLocation RECORD_LOCATION, dataBean.getMboSet().getName(): " + dataBean.getMboSet().getName() + " dataBean: " + dataBean);
+			        //System.out.println(">>> BIMViewer component lookupLeafLocation dataBean.getMboSet().getAppWhere()): " + dataBean.getMboSet().getAppWhere());
+			        //System.out.println(">>> BIMViewer component lookupLeafLocation dataBean.getMboSet().getQbeWhere()): " + dataBean.getMboSet().getQbeWhere());
+			        //System.out.println(">>> BIMViewer component lookupLeafLocation dataBean.getMboSet().getSelectionWhere()): " + dataBean.getMboSet().getSelectionWhere());
+			        //System.out.println(">>> BIMViewer component lookupLeafLocation dataBean.getMboSet().getUserWhere()): " + dataBean.getMboSet().getUserWhere());
+			        //System.out.println(">>> BIMViewer component lookupLeafLocation dataBean.getMboSet().getWhere()): " + dataBean.getMboSet().getWhere());
+			        //System.out.println(">>> BIMViewer component lookupLeafLocation dataBean.getMboSet().getRelationship()): " + dataBean.getMboSet().getRelationship() );
+			        //System.out.println(">>> BIMViewer component lookupLeafLocation dataBean.getMboSet().getCompleteWhere())4.1: " + dataBean.getMboSet().getCompleteWhere());
+			        dataBean.getMboSet().setWhere(oldQBEWhere);
+			        dataBean.reset();
+//					mbo = locationSet.getMbo(0);
+					mbo = dataBean.getMboSet().getMbo(0);
+//			        //System.out.println(">>> BIMViewer component lookupLeafLocation getting mbo with QBEWHERE instead: " + locationSet.getCompleteWhere());
+			        //System.out.println(">>> BIMViewer component lookupLeafLocation getting mbo with QBEWHERE instead: " + dataBean.getMboSet().getCompleteWhere());
+					return (psdi.app.location.Location)mbo;
+		        }
+		        //System.out.println(">>> BIMViewer component lookupLeafLocation where poplulated and relationship populated: " + (dataBean.getMboSet().getWhere() != null && !dataBean.getMboSet().getWhere().equals("") && dataBean.getMboSet().getRelationship() != null && !dataBean.getMboSet().getRelationship().equals("")) );
+		        if(dataBean.getMboSet().getWhere() != null && !dataBean.getMboSet().getWhere().equals("") &&
+		        		dataBean.getMboSet().getRelationship() != null && !dataBean.getMboSet().getRelationship().equals("")) // if there's a where, the relationship may be conflicting
+		        {
+//					MboSetRemote locationSet = null;
+//					locationSet = _server.getMboSet( Constants.TABLE_LOCATIONS, dataBean.getMboSet().getUserInfo() );
+//					locationSet.setRelationship("");
+//					locationSet.setWhere( dataBean.getMboSet().getWhere() );
+//					locationSet.reset();
+					String oldWhere = dataBean.getMboSet().getWhere();
+					//dataBean.getMboSet().clear();
+					//dataBean.clearBean();
+					cleandDatabeanWhere(dataBean);
+			        //System.out.println(">>> BIMViewer component lookupLeafLocation WHERE updating dataBean with cleandDatabeanWhere(dataBean)" );
+			        //System.out.println(">>> BIMViewer component lookupLeafLocation RECORD_LOCATION, dataBean.getMboSet().getName(): " + dataBean.getMboSet().getName() + " dataBean: " + dataBean);
+			        //System.out.println(">>> BIMViewer component lookupLeafLocation dataBean.getMboSet().getAppWhere()): " + dataBean.getMboSet().getAppWhere());
+			        //System.out.println(">>> BIMViewer component lookupLeafLocation dataBean.getMboSet().getQbeWhere()): " + dataBean.getMboSet().getQbeWhere());
+			        //System.out.println(">>> BIMViewer component lookupLeafLocation dataBean.getMboSet().getSelectionWhere()): " + dataBean.getMboSet().getSelectionWhere());
+			        //System.out.println(">>> BIMViewer component lookupLeafLocation dataBean.getMboSet().getUserWhere()): " + dataBean.getMboSet().getUserWhere());
+			        //System.out.println(">>> BIMViewer component lookupLeafLocation dataBean.getMboSet().getWhere()): " + dataBean.getMboSet().getWhere());
+			        //System.out.println(">>> BIMViewer component lookupLeafLocation dataBean.getMboSet().getRelationship()): " + dataBean.getMboSet().getRelationship() );
+			        //System.out.println(">>> BIMViewer component lookupLeafLocation dataBean.getMboSet().getCompleteWhere())4.2: " + dataBean.getMboSet().getCompleteWhere());
+			        dataBean.getMboSet().setWhere(oldWhere);
+			        dataBean.reset();
+//					mbo = locationSet.getMbo(0);
+					mbo = dataBean.getMboSet().getMbo(0);
+//			        //System.out.println(">>> BIMViewer component lookupLeafLocation getting mbo with ONLY WHERE instead: " + locationSet.getCompleteWhere());
+			        //System.out.println(">>> BIMViewer component lookupLeafLocation getting mbo with ONLY WHERE instead: " + dataBean.getMboSet().getCompleteWhere());
+					return (psdi.app.location.Location)mbo;
+		        }
 			}
 			return null;
 		}
@@ -1557,10 +1784,19 @@ return _controlVisible; }
 		return null;
 	}
 	
+	private void cleandDatabeanWhere(DataBean dataBean) throws RemoteException, MXException
+	{
+		dataBean.getMboSet().setAppWhere("");
+		dataBean.getMboSet().resetQbe();
+		dataBean.getMboSet().setUserWhere("");
+		dataBean.getMboSet().setWhere("");
+		dataBean.getMboSet().setRelationship("");
+	}
+	
 	protected MboSetRemote lookupModelFileForLocation(
 		LocationRemote locMbo
 	) {
-        //System.out.println(">>> BIMViewer component " + (Thread.currentThread().getStackTrace()[3].toString()) + " ==> " + ((new Object() {}).getClass().getEnclosingMethod().getName()) );
+        //System.out.println(">>> BIMViewer component lookupModelFileForLocation " + (Thread.currentThread().getStackTrace()[3].toString()) + " ==> " + ((new Object() {}).getClass().getEnclosingMethod().getName()) );
 		try
 		{
 	   		String siteId   = locMbo.getString( FIELD_SITEID );
@@ -1610,13 +1846,21 @@ return _controlVisible; }
 			sqlf.setObject(1, TABLE_LOCATIONS, FIELD_LOCATION, location );
 			sqlf.setObject(2, TABLE_LOCATIONS, FIELD_SITEID, siteId ) ; 
 			sqlf.setObject(3, TABLE_LOCATIONS, FIELD_SYSTEMID, systemId ) ; 
+	        //System.out.println(">>> BIMViewer component lookupModelFileForLocation sqlf.format(): " + sqlf.format() );
+	        //System.out.println(">>> BIMViewer component lookupModelFileForLocation _modelSet.getCompleteWhere(): " + _modelSet.getCompleteWhere() );
 	        _modelSet.setWhere( sqlf.format() );
 	        _modelSet.setOrderBy( BuildingModel.FIELD_PRIORITY + " DESC" );
 	        _modelSet.reset();
+	        
+	        //System.out.println(">>> BIMViewer component lookupModelFileForLocation _modelSet: " + _modelSet );
+	        //System.out.println(">>> BIMViewer component lookupModelFileForLocation _modelSet.getName(): " + _modelSet.getName() );
+	        //System.out.println(">>> BIMViewer component lookupModelFileForLocation _modelSet.getCompleteWhere(): " + _modelSet.getCompleteWhere() );
+	        
 			return _modelSet;
 		}
 		catch( Exception e )
 		{
+	        //System.out.println(">>> BIMViewer component lookupModelFileForLocation error caught... " );
 			e.printStackTrace( System.err );
 			return null;
 		}
@@ -1637,8 +1881,12 @@ return _controlVisible; }
 		       MXException 
 	{
         //System.out.println(">>> BIMViewer component " + (Thread.currentThread().getStackTrace()[3].toString()) + " ==> " + ((new Object() {}).getClass().getEnclosingMethod().getName()) );
+        dataBean.setCurrentRow(0);
    		String siteId  = dataBean.getString( FIELD_SITEID );
-   		return BIMViewer.lookupLocation( dataBean.getMbo(), location, siteId );
+        //System.out.println(">>> BIMViewer component lookupLocation(location) siteId: " + siteId );
+        //System.out.println(">>> BIMViewer component lookupLocation(location) dataBean.getMbo(0): " + dataBean.getMbo(0) );
+        //System.out.println(">>> BIMViewer component lookupLocation(location) dataBean.getCompleteWhere(): " + dataBean.getCompleteWhere() );
+   		return BIMViewer.lookupLocation( dataBean.getMbo(0), location, siteId );
 	}
 	
 	/**
@@ -1700,11 +1948,11 @@ return _controlVisible; }
 
 		try
 		{
-			SqlFormat sqlf = new SqlFormat( dataBean.getMbo(), field + QUERY_LOC_MODELID );
+			SqlFormat sqlf = new SqlFormat( dataBean.getMbo(0), field + QUERY_LOC_MODELID );
 			sqlf.setObject(1, TABLE_LOCATIONS,_modelId, modelId );
 			sqlf.setObject(2, TABLE_LOCATIONS, FIELD_LOCATION, modelLocation );
 			sqlf.setObject(3, TABLE_LOCATIONS, FIELD_SITEID, siteId ) ; 
-			MboSetRemote locSet = dataBean.getMbo().getMboSet("$getLocations", TABLE_LOCATIONS, sqlf.format());
+			MboSetRemote locSet = dataBean.getMbo(0).getMboSet("$getLocations", TABLE_LOCATIONS, sqlf.format());
 			if( locSet.isEmpty() )	return null;
 			if( locSet.count() > 1 )
 			{
@@ -1741,7 +1989,7 @@ return _controlVisible; }
 		String field = _binding;
 		if( _type == TYPE_ASSET ) field = _modelId;
 
-		MboRemote locMbo = BIMViewer.lookupLocation( dataBean.getMbo(), location, siteId );
+		MboRemote locMbo = BIMViewer.lookupLocation( dataBean.getMbo(0), location, siteId );
 		if( locMbo == null ) return null;
 		return locMbo.getString( field );
 	}
@@ -1760,7 +2008,7 @@ return _controlVisible; }
 		MboRemote mbo;
         try
         {
-	        mbo = dataBean.getMbo();
+	        mbo = dataBean.getMbo(0);
 			SqlFormat sqlf = new SqlFormat( mbo, FIELD_WO_NUM + "=:1 and siteid=:2");
 			sqlf.setObject(1, TABLE_WORKORDER, FIELD_WO_NUM, woKey );
 			sqlf.setObject(2, TABLE_WORKORDER, FIELD_SITEID, siteId ) ; 
@@ -1802,7 +2050,7 @@ return _controlVisible; }
 			   MXException 
 	{
         //System.out.println(">>> BIMViewer component " + (Thread.currentThread().getStackTrace()[3].toString()) + " ==> " + ((new Object() {}).getClass().getEnclosingMethod().getName()) );
-		MboRemote mbo     = dataBean.getMbo();
+		MboRemote mbo     = dataBean.getMbo(0);
 		String siteId  = dataBean.getString( FIELD_SITEID );
 
 		SqlFormat sqlf = new SqlFormat( mbo, "location=:1 and siteid=:2");
@@ -1840,7 +2088,7 @@ return _controlVisible; }
 		}
 		
 		String siteId = dataBean.getString( FIELD_SITEID );
-		MboRemote mbo     = dataBean.getMbo();
+		MboRemote mbo     = dataBean.getMbo(0);
 		SqlFormat sqlf = new SqlFormat( mbo, _modelId + QUERY_LOC_MODELID );
 		sqlf.setObject(1, TABLE_LOCATIONS,_modelId, modelId );
 		sqlf.setObject(2, TABLE_LOCATIONS, FIELD_LOCATION, _modelLocation );
@@ -1991,6 +2239,7 @@ return _controlVisible; }
 		       MXException 
 	{
         //System.out.println(">>> BIMViewer component " + (Thread.currentThread().getStackTrace()[3].toString()) + " ==> " + ((new Object() {}).getClass().getEnclosingMethod().getName()) );
+        //System.out.println(">>> BIMViewer component lookupLocations mbo: " + mbo + " location: " + location + " siteId: " + siteId );
 		if( mbo == null )
 		{
 			return null;
@@ -1999,6 +2248,7 @@ return _controlVisible; }
 		SqlFormat sqlf = new SqlFormat( mbo, FIELD_LOCATION + "=:1 and siteid=:2");
 		sqlf.setObject(1, TABLE_LOCATIONS, FIELD_LOCATION, location );
 		sqlf.setObject(2, TABLE_LOCATIONS, FIELD_SITEID, siteId ) ; 
+        //System.out.println(">>> BIMViewer component lookupLocations sqlf.format(): " + (sqlf.format()) );
 		return (LocationSetRemote)mbo.getMboSet("$getLocations", TABLE_LOCATIONS, sqlf.format());
 	}
 	
@@ -2019,7 +2269,8 @@ return _controlVisible; }
 	{
         //System.out.println(">>> BIMViewer component " + (Thread.currentThread().getStackTrace()[3].toString()) + " ==> " + ((new Object() {}).getClass().getEnclosingMethod().getName()) );
 		MboSetRemote locationSet = lookupLocations( mbo, location, siteId );
-		if( locationSet.isEmpty())
+		//System.out.println(">>> BIMViewer component ( locationSet == null || locationSet.isEmpty())?: " + ( locationSet == null || locationSet.isEmpty()));
+		if( locationSet == null || locationSet.isEmpty())
 		{
 			return null;
 		}
@@ -2054,13 +2305,14 @@ return _controlVisible; }
 		}
 	}
 	
-//	public void eventJosh()
-//	{
-//        //System.out.println(">>> BIMViewer component " + (Thread.currentThread().getStackTrace()[3].toString()) + " ==> " + ((new Object() {}).getClass().getEnclosingMethod().getName()) );
-//		WebClientEvent event = _wcs.getCurrentEvent();
-//		Object o = event.getValue();
-//		//System.out.println(">>> BIMViewer eventJosh value: " + ((String) o));
-//	}
+	private void changeBeanRecordSet(DataBean bean, long uid) throws RemoteException, MXException
+	{
+		bean.getMboSet().resetQbe();
+		bean.getMboSet().clear();
+		bean.getMboSet().setWhere( bean.getUniqueIdName() + " = " + uid );
+		bean.getMboSet().reset();
+	}
+
 	/**
 	 * Holds the definition of a building model
 	 * @author Doug

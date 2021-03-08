@@ -17,7 +17,7 @@
 --%>
 <%@page import="psdi.webclient.components.*"%>
 <%@ include file="../bim/bimheader.jsp" %>
-    
+<!DOCTYPE html>    
 <html>
 <head>
     <link rel="stylesheet" href="<%=CSS_PATH%>/maximo.css">
@@ -152,11 +152,11 @@
   </table>  <%-- Close control table --%>
 
   <iframe id=<%=id%>_selectSize  frameborder="3"
-          style="position:absolute;borderColor:#888888;background:#FFFFFF;visibility:hidden;z-index:20000"
           marginwidth="0" marginheight="0" scrolling="no"
 		  src="<%=servletBase%>/components/bim/bimresizepopup.html">
   </iframe>
-  
+	<style type="text/css"> #<%=id%>_selectSize {position:absolute; left:400px; top:100px; width:150px; height:200px; z-index:100; visibility:hidden; borderColor:#888888; background:#FFFFFF } </style>
+
   <%@ include file="footer.jsp" %>
   
 </body>

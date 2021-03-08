@@ -21,12 +21,12 @@
 	<version>
 		<major>7</major>
 		<minor>6</minor>
-		<modlevel>0</modlevel>
-		<patch>9</patch>
-		<build>20171201-0100</build>
+		<modlevel>1</modlevel>
+		<patch>2</patch>
+		<build>20200706-0000</build>
 	</version>
 	<dbmaxvarname>BIMLMV</dbmaxvarname>
 	<dbscripts>bimlmv</dbscripts>
-	<dbversion>V7609-01</dbversion>
-	<lastdbversion>V7606-00*V7606-09*V7607-04*V7608-02*V7609-01</lastdbversion>
+	<dbversion>V7613-01</dbversion>
+	<lastdbversion>V7606-00*V7606-09*V7607-04*V7608-02*V7609-01*V7612-01</lastdbversion>
 </product>

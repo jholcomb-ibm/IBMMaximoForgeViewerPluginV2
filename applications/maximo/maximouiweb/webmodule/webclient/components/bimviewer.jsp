@@ -1,19 +1,11 @@
 <%--
-* Copyright IBM Corporation 2009-2017
-*
-* Licensed under the Eclipse Public License - v 1.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* https://www.eclipse.org/legal/epl-v10.html
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
+* Licensed Materials - Property of IBM
+* Restricted Materials of IBM
 * 
-* @Author Doug Wood
+* (C) COPYRIGHT IBM CORP. 2010,2018 All Rights Reserved.
+* US Government Users Restricted Rights - Use, duplication or
+* disclosure restricted by GSA ADP Schedule Contract with
+* IBM Corp.
 --%>
 <%@page import="psdi.webclient.components.*"%>
 <%@page import="psdi.server.MXServer"%>
@@ -99,11 +91,12 @@ if( _needsRendered )
 	{%>
 		// Need to allow time for the NavisWorks control to initialize or it fails to bind
 		// to its event handlers
-		addLoadMethod( 'setTimeout( \'<%=bldgMdl.jspScript( id )%>\', 500 );' );
+		addLoadMethod( 'setTimeout( \'<%=bldgMdl.jspScript( id )%>\', 100 );' );
 	<%}
 	else
 	{%>
-		addLoadMethod( '<%=bldgMdl.jspScript( id )%>' );
+		addLoadMethod( 'setTimeout( \'<%=bldgMdl.jspScript( id )%>\', 100 );' );
+		//addLoadMethod( '<%=bldgMdl.jspScript( id )%>' );
 	<%}%>
 	
 	</script>
@@ -115,7 +108,7 @@ else
 	{%>
 		<component id="<%=id%>_holder"><%="<![CDATA["%>
 			<script>
-				setTimeout( '<%=bldgMdl.jspScript( id )%>', 10 );
+				setTimeout( '<%=bldgMdl.jspScript( id )%>', 100 );
 			</script>
 		<%="]]>"%></component>
 		<%
@@ -131,40 +124,52 @@ if( _needsRendered )
 	// Force a reload of the model file if the control is being redrawn
 	bldgMdl.setModelListChanged( true );
 	bldgMdl.setValueChanged( true );
+	
+	String controlTop = component.getProperty("controltop");
+	controlTop = (controlTop == null || controlTop.equalsIgnoreCase("")) ? "250" : controlTop;
+	String controlLeft     = component.getProperty("controlleft");
+	controlLeft = (controlLeft == null || controlLeft.equalsIgnoreCase("")) ? "325" : controlLeft;
+	String height     = component.getProperty("height");
+	height = (height == null) ? "" : height;
+	String width     = component.getProperty("width");
+	width = (width == null) ? "" : width;
 	%>
 
-<table id="<%=containerTable%>" name="<%=containerTable%>"  
-       style="position:relative;; top:<%=bldgMdl.jspGetViewerTop()%>px; width:100%">
+<div id=<%=id%>_frameLoc style="left: <%=controlLeft%>px; top: <%=controlTop%>px; border: 0px none; position: relative; overflow: hidden; visibility: hidden; z-index: 10000">
+</div>
 
-  <script>
-	if( "<%=bldgMdl.getWidth()%>" == "100%"  )
+<script>
+
+	var frameLoc = document.getElementById("<%=id%>_frameLoc");
+	var controlHeight = "<%=height%>";
+	var controlWidth = "<%=width%>";
+	if(controlHeight == "")
 	{
-		var container = document.getElementById( "<%=containerTable%>" );
-		if( container )
-		{
-			var parent = container.parentNode;
-			while( parent != null && parent.scrollWidth == 0 )
-			{
-	//			alert( parent.id + " " + parent.style.width + "  Left: " + parent.scrollLeft );
-				parent = parent.parentNode;
-			}
-			container.style.width = "" +  (parent.clientWidth - <%=bldgMdl.getLeftOffset()%>) + "px";
-		}
+		controlHeight = (document.documentElement.clientHeight - <%=controlTop%> - 30);
 	}
-  </script>
+	controlHeight += "px";
+	if(controlWidth == "")
+	{
+		controlWidth = (document.documentElement.clientWidth - <%=controlLeft%> - 30);
+	}
+	controlWidth += "px";
+	if(frameLoc != null && frameLoc != undefined)
+	{
+		frameLoc.style.height = controlHeight;
+		frameLoc.style.width = controlWidth;
 
-  <tr>
-    <td id=<%=id%>_frameLoc valign="top" >
-	  <iframe id=<%=id%>_frame frameborder="0" 
-      		  allowFullScreen webkitallowfullscreen mozallowfullscreen 
-	          height="<%=bldgMdl.getHeight()%>" width="<%=bldgMdl.getWidth()%>" 
-	          marginwidth="0" marginheight="0" scrolling="no"
-           	  src="<%=servletBase%>/components/bim<%=bldgMdl.getViewerType()%>/viewerframe.jsp?rid=<%=id%>&id=<%=bldgMdl.getId()%>&uisessionid=<%=uiSessionId%>"
-              >
-	  </iframe>
-    </td>
-  </tr>
-</table>
+		var viewerframe = "<%=servletBase%>/components/bim<%=bldgMdl.getViewerType()%>/viewerframe.jsp?rid=<%=id%>&id=<%=bldgMdl.getId()%>&uisessionid=<%=uiSessionId%>";
+		var iframe = document.createElement('iframe');
+		iframe.frameBorder = 0;
+		iframe.width = frameLoc.style.width;
+		iframe.height = frameLoc.style.height;
+		iframe.id = "<%=id%>_frame";
+		iframe.setAttribute("src", viewerframe);
+		frameLoc.appendChild(iframe);
+		//console.log("bimviewer iframe set to: " + iframe.width + ", " + iframe.height);
+	}
+		
+</script>
 
 <%
 }  // Close else if !bldgMdl.needsRender() )

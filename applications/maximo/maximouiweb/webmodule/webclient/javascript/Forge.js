@@ -537,11 +537,81 @@ IBM.LMV.ForgeViewer = function()
 	this.selectByGUID = function(
 		GUIDs
 	) {
+        this.cancelMarkupMode();
+    
 		if( _selectionMgr )
 		{
 			_selectionMgr.selectByGUID( GUIDs );
 		}
 	}
+    
+    this.cancelMarkupMode = function() {
+        var markup = IBM.LMV.markup;
+        if(markup != null) {
+           if(markup.duringEditMode) {
+              markup.leaveEditMode();
+           } 
+           if(markup.duringEditMode || markup.duringViewMode) {
+               markup.hide();
+           }
+           this.removeCancelViewModeButton();
+        }
+    }
+    
+    this.removeCancelViewModeButton = function() {
+           var leaveViewModeButton = IBM.LMV.Markup.LeaveViewModeButton;
+           var viewerContainer = IBM.LMV.viewer.container;
+           if(leaveViewModeButton != null) {
+              if(viewerContainer.hasChildNodes()) {
+                var childNodes = viewerContainer.childNodes;  
+                for (var i = 0; i < childNodes.length; i++) {
+                var node =  childNodes[i];  
+                if(node.className == "maxlmv_CancelMarkup_Tool") {
+                    viewerContainer.removeChild(leaveViewModeButton.cancelButton); 
+                    break;
+                 }    
+               }
+            }
+           }
+    }
+	
+    this.cancelMarkupMode = function() {
+        var markup = IBM.LMV.markup;
+        if(markup != null) {
+           if(markup.duringEditMode) {
+              markup.leaveEditMode();
+           } 
+           if(markup.duringEditMode || markup.duringViewMode) {
+               markup.hide();
+           }
+		   if(viewer != null) {
+			   if(viewer.markupMgr != null) {
+				   if(viewer.markupMgr.cancelMarkup != undefined) {
+					   viewer.markupMgr.cancelMarkup();
+				   }
+			   }
+		   }
+		   //viewer.markupMgr.cancelMarkup();
+           //this.removeCancelViewModeButton();
+        }
+    }
+    
+    this.removeCancelViewModeButton = function() {
+           var leaveViewModeButton = IBM.LMV.Markup.LeaveViewModeButton;
+           var viewerContainer = IBM.LMV.viewer.container;
+           if(leaveViewModeButton != null) {
+              if(viewerContainer.hasChildNodes()) {
+                var childNodes = viewerContainer.childNodes;  
+                for (var i = 0; i < childNodes.length; i++) {
+                var node =  childNodes[i];  
+                if(node.className == "maxlmv_CancelMarkup_Tool") {
+                    viewerContainer.removeChild(leaveViewModeButton.cancelButton); 
+                    break;
+                 }    
+               }
+            }
+           }
+    }
 	
 	//==================================================================================
 	// Material Manager
@@ -749,6 +819,13 @@ authNS.getRestURL = function()
 	}
 	url = url + IBM.LMV.Auth.contextRoot;
 	return url;
+};
+
+authNS.getOslcURL = function()
+{
+	var url = "" + this.getRestURL();
+	var returl = url.replace("rest", "oslc");
+	return returl;
 };
 
 authNS.setRequestHeaders = function(
@@ -1420,6 +1497,14 @@ IBM.LMV.SelectionMgr = function(
 		var propDbPath = doc.getPropertyDbPath();
 		propDbPath = propDbPath + "objects_ids.json.gz";
 
+		if (!String.prototype.startsWith) 
+		{
+			String.prototype.startsWith = function(searchString, position) {
+				position = !isNaN(parseInt(position)) ? position : 0;
+				return this.indexOf(searchString, position) === position;
+			};
+		}
+
 		if( !propDbPath.startsWith( "http") )
 		{
 			propDbPath = "https://developer.api.autodesk.com//derivativeservice/v2/derivatives/"  + propDbPath;
@@ -1499,6 +1584,8 @@ IBM.LMV.SelectionMgr = function(
 			return;
 		}
 
+		// cleanup - remove carriage returns and new lines.
+		str = str.replace(/\r?\n|\r/g, ' ').trim();
 		_dbId2GuidArray = str.split(',');
 		
 		for( var i = 0; i < _dbId2GuidArray.length; i++ )
@@ -1542,7 +1629,10 @@ IBM.LMV.SelectionMgr = function(
 		
 		// uniqueId formate:
 		// "49b86b5c-d743-45a4-83ea-d49359f1ad2a-00093467"
-		var uniqueId     = uniqueId.substring( 3, 48 );
+		//var uniqueId     = uniqueId.substring( 3, 48 );
+		// this was causing problems for revit format as the returned ids were not stripped of \n\CR
+		var uniqueId     = uniqueId.substring( 2, 47 );
+		//IBM.LMV.trace(" uniqueId2GUID - uniqueId ="+uniqueId);
 		if( uniqueId == "" )
 		{
 			return "";
@@ -1561,7 +1651,9 @@ IBM.LMV.SelectionMgr = function(
 			xor = xor +  char3;	
 		}
 	
-		return uniqueId.substring( 0, 28 ) + xor;
+		var retId = uniqueId.substring( 0, 28 ) + xor;
+		//IBM.LMV.trace(" uniqueId2GUID - retId ="+retId);
+		return retId;
 	};
 
 	this.getGuidByNodeId = function( nodeId ) 

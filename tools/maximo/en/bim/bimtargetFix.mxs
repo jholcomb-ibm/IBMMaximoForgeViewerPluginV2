@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<updatescript version="">
+	<app apptype="webclient" id="asset">
+		<add container="view_l" control="sectionrow">
+			<set property="id" value="view_header_2"/>
+		</add>
+		<add container="view_header_2" control="sectioncol">
+			<set property="id" value="view_header_2_1"/>
+		</add>
+		<add container="view_header_2_1" control="bimtarget">
+			<set property="id" value="bimtarget1"/>
+		</add>
+		<modify control="model_asset_view">
+			<clear property="height"/>
+			<set property="controltarget" value="bimtarget1"/>
+		</modify>
+	</app>
+		
+	<app apptype="webclient" id="location">
+		<add container="view_l" control="sectionrow">
+			<set property="id" value="view_1_2"/>
+		</add>
+		<add container="view_1_2" control="sectioncol">
+			<set property="id" value="view_1_2_1"/>
+		</add>
+		<add container="view_1_2_1" control="section">
+			<set property="id" value="view_1_2_1_1"/>
+		</add>
+		<add container="view_1_2_1_1" control="bimtarget">
+			<set property="id" value="bimtarget1"/>
+		</add>
+		<modify control="model_location_view">
+			<clear property="height"/>
+			<set property="controltarget" value="bimtarget1"/>
+		</modify>
+	</app>
+		
+	<app apptype="webclient" id="bimmodels">
+		<add container="managemodel_view_1_grid1" control="sectionrow">
+			<set property="id" value="managemodel_view_1_grid1_r2"/>
+		</add>
+		<add container="managemodel_view_1_grid1_r2" control="sectioncol">
+			<set property="id" value="managemodel_view_1_grid1_r2_c1"/>
+		</add>
+		<add container="managemodel_view_1_grid1_r2_c1" control="section">
+			<set property="id" value="managemodel_view_1_grid1_r2_c1_s1"/>
+		</add>
+		<add container="managemodel_view_1_grid1_r2_c1_s1" control="bimtarget">
+			<set property="id" value="bimtarget1"/>
+		</add>
+		<modify control="model_location_view">
+			<clear property="height"/>
+			<clear property="width"/>
+			<clear property="leftoffset"/>
+			<set property="controltarget" value="bimtarget1"/>
+		</modify>
+	</app>
+		
+	<app apptype="webclient" id="wotrack">
+		<add container="view_1a_1_2" control="bimtarget">
+			<set property="id" value="bimtarget1"/>
+		</add>
+		<modify control="model_location_view">
+			<clear property="height"/>
+			<clear property="topoffset"/>
+			<clear property="leftoffset"/>
+			<set property="controltarget" value="bimtarget1"/>
+		</modify>
+	</app>
+		
+	<app apptype="webclient" id="library">
+		<add before="select_asset_view" container="select_asset_3_row_2_col1" control="bimtarget">
+			<set property="id" value="bimtarget1"/>
+			<set property="topoffset" value="0"/>
+			<set property="leftoffset" value="0"/>
+			<set property="height" value="650"/>
+			<set property="width" value="800"/>
+		</add>
+		<modify control="select_asset_view">
+			<clear property="height"/>
+			<clear property="width"/>
+			<set property="controltarget" value="bimtarget1"/>
+		</modify>
+		<add before="model_asset_view" container="model_location_2" control="bimtarget">
+			<set property="id" value="bimtarget2"/>
+			<set property="topoffset" value="0"/>
+			<set property="leftoffset" value="0"/>
+			<set property="height" value="650"/>
+			<set property="width" value="800"/>
+		</add>
+		<modify control="model_asset_view">
+			<clear property="height"/>
+			<clear property="width"/>
+			<set property="controltarget" value="bimtarget2"/>
+		</modify>
+	</app>
+</updatescript>

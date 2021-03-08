@@ -102,7 +102,7 @@ function ViewerWrapper(
 
 		_forgeViewer = new IBM.LMV.ForgeViewer();
 
-		<%if( appType ==  BIMViewer.TYPE_WORKORDER )
+		<%if( appType ==  BIMViewer.TYPE_WORKORDER||appType ==  BIMViewer.TYPE_ASSET || appType ==  BIMViewer.TYPE_LOCATION )
 		{%> 
 			this.markupMgr = new IBM.LMV.Markup.MarkupMgr( _forgeViewer );
 		<%}%>
@@ -113,7 +113,6 @@ function ViewerWrapper(
 		IBM.LMV.Auth.contextRoot = "/rest";
 
 		IBM.LMV.addMScreenModeChangeistener( this.onScreeModeChange );
-		//console.log('>>> bimlmv scripts.jsp addSelectionListener added!');
 		_forgeViewer.addSelectionListener( this.onSelect );
 		IBM.LMV.ToolBar.onToolbarCreate = function( forgeViewer, parentToolBar ) { _self.onToolbarCreate( forgeViewer, parentToolBar ); };
 		IBM.LMV.displayError            = function( msg ) { _self.displayError( msg ); };
@@ -145,8 +144,6 @@ function ViewerWrapper(
 		IBM.LMV.title    = this.model.title;
 		IBM.LMV.siteId   = this.model.siteId;
 
-		//console.log('>>> bimlmv scripts.jsp loadFile url: ' + this.model.url);
-		//console.log('>>> bimlmv scripts.jsp loadFile attribName: ' + this.model.attribName);
 		_forgeViewer.loadDocument( this.model.url, this.model.attribName );		
 		setSize();
 	};
@@ -338,8 +335,6 @@ function ViewerWrapper(
 	this.onSelect = function(
 		selection
 	) {
-		//console.log(">>> bimlmv scripts.jsp onSelect hit");
-		console.trace();
 		selMgr.updateSelectionSet( IBM.LMV.ctrlContainer );
 	};
 	
@@ -786,7 +781,6 @@ function MaximoToolBar(
 			catch( MXException mxe )
 			{ /* Ignore */	}
 			%>
-
 		    <%-- Enter Markup create mode and show Markup toolbar --%>
 			<%
 			try
@@ -803,20 +797,17 @@ function MaximoToolBar(
 			catch( MXException mxe )
 			{ /* Ignore */	}
 			%>
-
 		    <%-- Add or remove the current selection from a workorder or a ticket --%>
 			var buttoAddToWO = new Autodesk.Viewing.UI.Button( "addSelectionBtn" );
 			buttoAddToWO.icon.style.backgroundImage = "url(" + "<%=BIM_IMAGE_PATH%>/tb_add.png" + ")";
 			buttoAddToWO.setToolTip( "<%=strings.addSelectionBtn%>" );
 			buttoAddToWO.onClick = function() { maximoIntf.maxSelectionAdd(); };
 			subToolbar.addControl( buttoAddToWO );
-
 			var buttoRemoveFromWO = new Autodesk.Viewing.UI.Button( "removeSelectionBtn" );
 			buttoRemoveFromWO.icon.style.backgroundImage = "url(" + "<%=BIM_IMAGE_PATH%>/tb_remove.png" + ")";
 			buttoRemoveFromWO.setToolTip( "<%=strings.removeSelectionBtn%>" );
 			buttoRemoveFromWO.onClick = function() { maximoIntf.maxSelectionRemove(); };
 			subToolbar.addControl( buttoRemoveFromWO );
-
 			toolBar.addControl( subToolbar );
 	
 			return subToolbar;
@@ -851,12 +842,14 @@ function MaximoToolBar(
 	}
 	
 		
-	<%if( appType ==  BIMViewer.TYPE_WORKORDER )
+	<%if( appType ==  BIMViewer.TYPE_WORKORDER||appType ==  BIMViewer.TYPE_ASSET || appType ==  BIMViewer.TYPE_LOCATION )
 	{%> 
 		// Called from ToolBar Button
-		this.createMarkup = function()
+		this.createMarkup = function(appType, renderId)
 		{
-			this.markupMgr.createMarkup( _forgeViewer.viewer, _wrapper.model.mboKey );
+            //TODO review this later if have better way
+            var mboKey = window.parent.document.querySelectorAll('[aria-readonly="true"]')[0].value;
+			this.markupMgr.createMarkup( _forgeViewer.viewer, mboKey, appType, renderId );
 		}
 		
 		this.showMarkup = function()
@@ -867,9 +860,16 @@ function MaximoToolBar(
 		// Called from ToolBar Button
 		this.displayShowMarkupDlg = function()
 		{
+            var mboKey = window.parent.document.querySelectorAll('[aria-readonly="true"]')[0].value;
 			var loadWorkViewDlg = new IBM.LMV.Markup.ShowDlg( this.markupMgr, _forgeViewer.viewer, "<%=IMAGE_PATH%>",
-			                                                  _wrapper.model.mboKey );
+			                                                  mboKey );
 			loadWorkViewDlg.setVisible( true );
+		}
+        
+        this.showDefectMarkups = function()
+		{
+            var mboKey = window.parent.document.querySelectorAll('[aria-readonly="true"]')[0].value;
+            this.markupMgr.showDefectMarkups(_forgeViewer.viewer, mboKey, "<%=bldgMdl.getRenderId()%>");
 		}
 	<%}%>
 

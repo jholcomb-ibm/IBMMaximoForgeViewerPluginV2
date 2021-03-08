@@ -33,7 +33,7 @@
 		- BIM Design Specification view
 		-->
 		<define_view name="BIMDesignSpec" classname="psdi.app.bim.product.BIMDesignSpecSet" service="BIM" extends="BIMProductBase"
-			type="org" description="View on BIMProduct for design specifications">
+			type="org" description="Database view on BIMPRODUCT for design specifications">
 			<view_column table="BIMPRODUCTBASE" column="BIMPRODUCTBASEID" view_column="BIMPRODUCTBASEID" />
 			<view_column table="BIMPRODUCTBASE" column="BIMASSETTYPE" view_column="BIMASSETTYPE" />
 			<view_column table="BIMPRODUCTBASE" column="CHANGEBY" view_column="CHANGEBY" />
@@ -305,7 +305,7 @@
 			primarykey="BIMCOMMENTID" >
 			
 			<attrdef attribute="BIMCOMMENTID" maxtype="INTEGER" 
-				title="BIMComment unique ID" remarks="Commune unique ID" length="12" required="true" mustbe="true"  />
+				title="BIM Comment unique ID" remarks="Unique comment ID" length="12" required="true" mustbe="true"  />
 			<attrdef attribute="PARENTID" maxtype="UPPER" title="Parent"
 				remarks="Reference to parent" length="12" required="false"
 				sameasobject="BIMCOMMENT" sameasattribute="BIMCOMMENTID" />

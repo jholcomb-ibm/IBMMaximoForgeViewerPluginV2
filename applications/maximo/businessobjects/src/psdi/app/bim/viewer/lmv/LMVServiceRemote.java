@@ -85,6 +85,14 @@ public interface LMVServiceRemote extends AppServiceRemote
 		String   siteId
 	) throws RemoteException, MXException; 
 
+	public String getAssetLocationMarkups (
+			UserInfo userInfo,
+			String   modelId,
+			String	 assetlocid,
+			String   siteId,
+			Boolean  isAsset
+		) throws RemoteException, MXException; 
+
 	public Result linkFileSet(
 		FileReference master,
 		FileReference children[]

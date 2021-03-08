@@ -58,12 +58,12 @@ public abstract class DataRESTAPI
     
      
     /**
-     * View your profile info The application will be able to read the end user’s profile data. 
+     * View your profile info The application will be able to read the end users profile data. 
      */
     public final static String SCOPE_PROFIEL_READ = "user-profile:read";
     
     /**
-     * View your data The application will be able to read the end user’s data within the 
+     * View your data The application will be able to read the end users data within the 
      * Autodesk ecosystem. 
      */
     public final static String SCOPE_DATA_READ = "data:read"; 
@@ -81,7 +81,7 @@ public abstract class DataRESTAPI
     public final static String SCOPE_DATA_CREATE = "data:create"; 
      
     /**
-     * Search across your data The application will be able to search the end user’s data 
+     * Search across your data The application will be able to search the end users data 
      * within the Autodesk ecosystem. 
      */
     public final static String SCOPE_DATA_SEARCH = "data:search"; 
@@ -128,7 +128,7 @@ public abstract class DataRESTAPI
     public final static String SCOPE_ACCOUNT_WRITE = "account:write"; 
     /**
      * View your viewable data 
-     * The application will only be able to read the end user’s viewable data (e.g., PNG and SVF files) 
+     * The application will only be able to read the end users viewable data (e.g., PNG and SVF files) 
      * within the Autodesk ecosystem 
      */
     public final static String SCOPE_VIEWABLE_READ = "viewables:read"; 
@@ -399,11 +399,11 @@ public abstract class DataRESTAPI
     		}
     		finally
     		{
-    			connection.disconnect();
     			if( os != null )
     			{
     				os.close();
     			}
+       			connection.disconnect();
     		}
     		
     		ResultAuthentication result = new ResultAuthentication( connection );
