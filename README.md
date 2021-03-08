@@ -18,6 +18,9 @@ Updating the application presentations
 If you are upgrading an existing install of the Forge plugin then the application presentation must be 
 updated manually using the following steps: 
  from a command prompt, execute the following commands: 
+ 
 o cd <maximo root>\tools\maximo\internal 
+ 
 o runscriptfile -cbimlmv -fresizefixUpdates 
+
 o runscriptfile -cbimlmv -fV7612_01 
