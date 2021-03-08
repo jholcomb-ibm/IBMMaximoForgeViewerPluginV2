@@ -1,6 +1,23 @@
 # IBMMaximoForgeViewerPluginV2
-IBM Maximo - Autodesk Forge Viewer Plugin Version 2
-
-This repository contains the source code for the IBM Maximo - Autodesk Forge Viewer Plugin Version 2.  A new version was created for ease of use.  It is designed to be used with fixes that have been added as of December 16, 2019 into the Maximo 7.6.0.9 hotfix, Maximo 7.6.1.1 hotfix, and 7.6.1.2 and future releases.
-
-To utilize the plugin without having to use a development environment, make sure that you have applied the hotfixes mentioned above, or are using Maximo 7.6.1.2 or later.  Copy the directories under the bin directory into your Maximo root directory (back up your Maximo files first, just in case).  You should then rebuild your maximo.ear file, redeploy it in your application server, and restart Maximo.
+BIM Extensions version 7.6.1.2 changes 
+Notes 
+ COBie support is now a base Maximo feature available in Maximo Feature Pack 7.6.0.6. Only 
+viewer feature not included in Maximo core are covered here. 
+ This version supports Maximo 7.6.0.10 and Maximo 7.6.1.x. At time of release this was tested 
+against the latest Maximo 7.6.1.2 and earlier version 7.6.0.10. 
+Install 
+If installing for the first time use the steps outlined in the 7612 Autodesk Forge Viewer Plugin - Install 
+Guide.pdf. 
+ 
+If you are upgrading from a previous version then 
+1. copy the files in the ForgeViewerPlugin directory to the Maximo <root> directory. 
+2. Run updated 
+3. Rebuild and redeploy the maximo ear file 
+4. Update the presentations using the steps listed in the next section. 
+Updating the application presentations 
+If you are upgrading an existing install of the Forge plugin then the application presentation must be 
+updated manually using the following steps: 
+ from a command prompt, execute the following commands: 
+o cd <maximo root>\tools\maximo\internal 
+o runscriptfile -cbimlmv -fresizefixUpdates 
+o runscriptfile -cbimlmv -fV7612_01 
